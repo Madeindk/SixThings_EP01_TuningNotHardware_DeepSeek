@@ -1,5 +1,7 @@
 # Shared asset manifest and rights boundaries
 
+[VOICE OVERRIDE, 15 Nov 2026] 6 Things EP01 uses **en-US-AndrewNeural**, not bm_daniel. The portable Kokoro chain below is historical (Inside the Log EP05+ only). For this episode read `voice/VOICE-CHAIN.md`. No new model weights are downloaded for the Andrew voice; the clone uses `voice_refs/andrew_reference.wav` plus the chatterbox-tts package.
+
 [6 Things override, 12 Nov 2026] The EP2 style guide/before-after image and the G2 STYLE_LOCK / G2 gate files are REMOVED from this package: G2 does not apply to 6 Things. Style = ../style/STYLE_6THINGS.md. Fonts ARE bundled for this series: ../style/fonts/ (Barlow Condensed, Inter Tight, JetBrains Mono, each with its OFL 1.1 licence). The rights boundaries below still apply.
 
 BUNDLED: existing EasyQuadTune icon PNG/SVG; EP2 original style guide, before/after reference image; authentic compact lib.js/a/b/c/d source examples, local Three.js0.160 module and RoomEnvironment (MIT licence included); portable voice chain: render_narration.py (bm_daniel from EP5), historical ep2_voice_chain.py (am_michael, EP1–4 provenance only), dependency pins, model lock, lexicon, and the historical am_michael reference WAV/transcript. Provenance: supplied existing EP4/EP2 local project. This is internal production reuse, not a redistribution licence for third parties. Do not present a new licence for these files.

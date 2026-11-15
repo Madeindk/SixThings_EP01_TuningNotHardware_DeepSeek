@@ -1,26 +1,43 @@
 # Six Things EP01 pronunciation checklist — NOT lexicon JSON
 
-Locked narrator: Kokoro v1.0 bm_daniel, speed 1.0, en-gb (same as Inside the Log EP05 onward). The audio is already rendered; do not re-synthesize it. Captions and graphics keep the official manuscript wording in blocks/ and NARRATION.txt. Respells below were applied to TTS input only and are logged in audio/sixthings_ep01_respell_log.md.
+Narrator: **`en-US-AndrewNeural`** (decision 15 Nov 2026; the earlier `bm_daniel` /
+Kokoro chain is superseded — see `../shared/voice/VOICE-CHAIN.md`).
 
-| Written | Spoken / phonemes checked (espeak en-gb via Kokoro tokenizer) | How |
+The narration wording is locked. Captions and graphics keep the manuscript wording in
+`blocks/` and `NARRATION.txt`. The respells below change the **TTS input only** and are
+logged in `audio/sixthings_ep01_respell_log.md`.
+
+Neither engine takes espeak phonemes, so the old Kokoro phoneme fixes now run as text
+respells:
+
+| Written | Spoken as | How |
 |---|---|---|
-| Blackbox | "black box" — blˈak bˈɒks | text respell |
-| EasyQuadTune | "Easy Quad Tune" — ˈiːzi kwˈɒd tjˈuːn | text respell |
-| PID | "P I D" — pˈiː aɪ dˈiː | text respell |
-| TPA | "T P A" — tˈiː pˈiː ˈeɪ | text respell (new for this episode) |
-| RPM | "R P M" — ˈɑː pˈiː ˈɛm | NORM |
-| ESC | "E S C" — ˈiː ˈɛs sˈiː | NORM |
-| feedforward / Feedforward | "feed-forward" — fˈiːdfˈɔːwəd | text respell (now matches a capital F at sentence start too) |
-| Betaflight / Betaflight's | BAY-ta-flight — bˈeɪtəflˌaɪt | phoneme fix (en-gb default is BEE-ta) |
-| D-term | dˈiːtˈɜːm | default, OK |
-| I-term | aɪtˈɜːm ("eye-term"; "the I-term" → ðɪ aɪtˈɜːm) | default, OK |
-| gyro | dʒˈaɪɹəʊ | default, OK |
-| setpoint | sˈɛtpɔɪnt | default, OK |
-| propwash | pɹˈɒpwɒʃ | default, OK |
-| log | lˈɒɡ (LOG, not lock) | default en-gb; EP4 American log rule NOT used |
-| under-damped, deadband, standoffs, integrator, harmonics, manoeuvres | checked, natural | default |
+| Blackbox | "black box" | text respell |
+| EasyQuadTune | "Easy Quad Tune" | text respell |
+| PID | "P I D" | text respell |
+| TPA | "T P A" | text respell |
+| RPM | "R P M" | NORM table |
+| ESC | "E S C" | NORM table |
+| feedforward / Feedforward | "feed-forward" | text respell (matches capital F at sentence start) |
+| Betaflight / Betaflight's | BAY-ta-flight | text respell (`Bay-ta-flight`); en-US default can drift to BEE-ta |
+| Fresnel | fruh-NELL | text respell (`fruh-nell`), was a phoneme fix under Kokoro |
+| D-term | "dee-term" | default |
+| I-term | "eye-term" | default |
+| gyro | "jy-roh" | default |
+| setpoint | "set-point" | default |
+| propwash | "prop-wash" | default |
+| log | "log" (not "lock") | default; the old American log rule is NOT used |
 
-Agent cannot hear. Phoneme strings were inspected as a listening proxy only. Thomas's own full listening pass is still required before release.
+Checked and natural by default: under-damped, deadband, standoffs, integrator, harmonics,
+manoeuvres, stall, regain, lower-pitch, forgiving, integrator windup, look-alike, levers,
+straight line, bearing, sample rate.
 
-## v2 additions (12 Nov 2026)
-New words in the changed scenes were checked in the phoneme output: stall stˈɔːl, regain ɹɪɡˈeɪn, lower-pitch lˈəʊəpˈɪtʃ, forgiving fəɡˈɪvɪŋ, integrator windup ˈɪntɪɡɹˌeɪtə wˈɪndʌp, look-alike lˈʊkɐlˈaɪk, levers lˈiːvəz (British), straight line stɹˈeɪt lˈaɪn, bearing bˈeəɹɪŋ, sample rate sˈampəl ɹˈeɪt. No new respells were needed.
+## Verification status
+
+The `Betaflight` and `Fresnel` respells have **not** been confirmed by listening. An agent
+cannot hear, so these are unverified until Thomas's own listening pass. Known defect from the
+first chatterbox render: the sentence at 0:07 in scene 1 was unclear; the cause was sentence
+length, not pronunciation, and it is addressed by splitting long sentences at commas (see
+`VOICE-CHAIN.md`).
+
+Thomas's full listening pass is required before release.

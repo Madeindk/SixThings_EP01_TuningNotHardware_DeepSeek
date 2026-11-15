@@ -1,22 +1,39 @@
 {
-  "decision": "Thomas, 12 Nov 2026, Europe/Copenhagen: chose comparison sample 6 (bm_daniel) as the narrator from EP5 onward. EP4 Part 2 and earlier episodes keep am_michael and must not be changed.",
-  "engine": "Kokoro TTS v1.0 via kokoro-onnx (ONNX)",
-  "model_file": {
-    "name": "kokoro-v1.0.onnx",
-    "bytes": 325532387,
-    "sha256": "7d5df8ecf7d4b1878015a32686053fd0eebe2bc377234608764cc0ef3636a6c5",
-    "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+  "decision": "Thomas, 15 Nov 2026, Europe/Copenhagen: the narrator for 6 Things EP01 is en-US-AndrewNeural. This supersedes the bm_daniel decision of 12 Nov 2026. bm_daniel remains the narrator of Inside the Log EP05 and later; do not change those episodes.",
+  "engine": "Chatterbox TTS zero-shot clone (primary), or Microsoft Edge TTS (fallback)",
+  "voice": "en-US-AndrewNeural",
+  "lang": "en-US",
+  "rate": "+0%",
+  "pitch": "+0Hz",
+  "reference": {
+    "path": "voice_refs/andrew_reference.wav",
+    "note": "12.096 s, 48 kHz stereo 16-bit (dual mono), of the Andrew voice. Used as the clone reference. No training is involved."
   },
-  "voices_file": {
-    "name": "voices-v1.0.bin",
-    "bytes": 28214398,
-    "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d",
-    "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+  "chatterbox": {
+    "package": "chatterbox-tts 0.1.7",
+    "torch": "2.6.0+cpu",
+    "device": "cpu",
+    "exaggeration": 0.5,
+    "cfg_weight": 0.5,
+    "min_p": 0.05,
+    "repetition_penalty": 1.2,
+    "note": "No CUDA or DirectML acceleration: chatterbox pins torch 2.6.0 and AMD DirectML on Windows stops at torch 2.4. Render speed is about 5x realtime on a Ryzen 7 9800X3D."
   },
-  "voice": "bm_daniel",
-  "speed": 1.0,
-  "lang": "en-gb",
-  "input": "phonemes (espeak via kokoro tokenizer) after text respell / NORM table, Betaflight phoneme fix (en-gb BEE-ta -> BAY-ta), and lexicon.json (Fresnel fruh-NELL). Official manuscript files are not rewritten.",
+  "edge": {
+    "package": "edge-tts 7.3.1",
+    "note": "Calls Microsoft's en-US-AndrewNeural directly. About 0.5x realtime and reproduces the original voice exactly, because there is no clone step."
+  },
+  "input": "text after the TEXT_RESPELLS and NORM tables. Neither engine takes phonemes, so the Kokoro phoneme fixes (Betaflight, Fresnel, lexicon) are applied as text respells instead.",
+  "sentence_handling": {
+    "comma_split_words": 8,
+    "comma_gap_s": 0.12,
+    "why": "Chatterbox slurs the end of long sentences. In scene 1 the 16-word sentence with two commas came out unclear at 0:07. Sentences longer than 8 words are split at commas, each part is synthesized separately, and the parts are joined with a 0.12 s gap (shorter than SGAP because it is a comma, not a full stop). Edge keeps whole sentences."
+  },
+  "caching": {
+    "path": "%USERPROFILE%\\.cache\\sixthings_tts",
+    "key": "sha256 of engine, voice, settings, reference-file hash and the exact sentence",
+    "why": "Each synthesized sentence is cached so an interrupted run resumes instead of starting over. The machine went down mid-render once."
+  },
   "native_sample_rate_hz": 24000,
   "trim": {
     "threshold_abs": 0.01,
@@ -33,16 +50,30 @@
     "TP_dBTP": -1.5,
     "LRA": 11.0,
     "passes": 2,
-    "note": "Same two-pass ffmpeg loudnorm as the approved bm_daniel sample. Delivery is 48 kHz 24-bit WAV + 192 kb/s MP3."
+    "note": "Same two-pass ffmpeg loudnorm as the previous chain. Delivery is 48 kHz 24-bit WAV + 192 kb/s MP3."
   },
-  "approved_sample": "voice_samples/6_kokoro_bm_daniel.mp3 (bm_daniel, speed 1.0, en-gb, SGAP 0.28, two-pass loudnorm -16 LUFS)",
-  "renderer": "shared/voice/render_narration.py",
+  "renderer": "shared/voice/render_narration_tts.py",
   "lexicon": "shared/voice/lexicon.json",
-  "historical_ep1_to_ep4": {
-    "voice": "am_michael",
-    "speed": 1.188,
-    "lang": "en-us",
-    "script": "ep2_voice_chain.py",
-    "note": "Do not use this chain for EP5\u201310. Do not retouch EP4 Part 2 or earlier audio."
+  "known_delta": {
+    "issue": "The Andrew clone renders shorter than the previous bm_daniel audio.",
+    "measurement": "Scene 1: 48.40 s (chatterbox) and 56.63 s (edge) against 56.38 s for the original v2 audio.",
+    "consequence": "audio/sixthings_ep01_p1_timing.csv was measured on the old audio. If the chatterbox render is used, the timing sheet must be re-measured with the renderer's output before cutting picture, or picture and audio will drift by roughly 14 percent.",
+    "status": "OPEN — Thomas must choose between re-measuring the timing sheet and keeping the audio length close to the original."
+  },
+  "historical": {
+    "inside_the_log_ep5_plus": {
+      "voice": "bm_daniel",
+      "engine": "Kokoro TTS v1.0 via kokoro-onnx",
+      "speed": 1.0,
+      "lang": "en-gb",
+      "note": "Unchanged. Do not re-render."
+    },
+    "ep1_to_ep4": {
+      "voice": "am_michael",
+      "speed": 1.188,
+      "lang": "en-us",
+      "script": "ep2_voice_chain.py",
+      "note": "Provenance only. Do not retouch EP4 Part 2 or earlier audio."
+    }
   }
 }

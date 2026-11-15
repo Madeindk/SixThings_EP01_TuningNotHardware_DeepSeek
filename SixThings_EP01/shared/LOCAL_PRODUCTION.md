@@ -2,7 +2,11 @@
 
 Extract into C:\Users\Thomas\InsideTheLog_EP05-10 (or any writable short path). All references are relative to this extracted root. Do not assume Linux paths, Bash, CUDA/NVIDIA, old projects or existing credentials. Use Python3 CPU and an available browser/Blender/FFmpeg. Inspect installed tools first, record exact versions. No automatic purchase, API charges, account creation, publishing or upload. Public model/tool downloads must be explicit, from official sources, hash-verified where a known hash exists, and never install by piping a remote script to a shell.
 
-[6 Things override: read ../style/STYLE_6THINGS.md first — the Inside the Log G2 STYLE_LOCK does not apply to this series and is not bundled.] Then read then the episode's complete scripts and source ledger. Do not invent missing material. Produce PART1 then PART2, episode by episode. Finished handoff content is not finished video. STOP on an unfinished episode directory; do not substitute an outline for a manuscript.
+[6 Things override: read ../style/STYLE_6THINGS.md first — the Inside the Log G2 STYLE_LOCK does not apply to this series and is not bundled.]
+
+[VOICE OVERRIDE, 15 Nov 2026: 6 Things EP01 uses en-US-AndrewNeural, not bm_daniel. Wherever this file says Kokoro / bm_daniel / render_narration.py, read it as: the narrator chain in ../voice/VOICE-CHAIN.md, rendered with ../voice/render_narration_tts.py. The Kokoro model download and phoneme setup below do not apply to this episode.]
+
+Then read then the episode's complete scripts and source ledger. Do not invent missing material. Produce PART1 then PART2, episode by episode. Finished handoff content is not finished video. STOP on an unfinished episode directory; do not substitute an outline for a manuscript.
 
 ## Project layout (generate locally, not supplied as finished media)
 EPxx/project/config/ — tool versions, voice lock, renderer tokens, pronunciation overrides
