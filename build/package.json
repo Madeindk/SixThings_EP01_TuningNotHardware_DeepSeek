@@ -1,0 +1,9 @@
+{
+  "name": "sixthings-render",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "puppeteer-core": "^25.17.0",
+    "three": "^0.187.0"
+  }
+}

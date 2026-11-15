@@ -26,3 +26,19 @@ SixThings_EP01/EP01/audio/review/
 _*.py
 _*.wav
 _*.mp3
+
+# Byggemaskineri: node-afhaengigheder, frame-dumps, mellemklip og previews.
+# Alt sammen genskabes med build/render.js, saa kun kaeden og den faerdige
+# film skal i git.
+build/node_modules/
+build/frames/
+build/clips/
+build/check/
+build/preview/
+build/concat.txt
+build/renderer/fonts.css
+
+
+# Mellemled: den tavse video og den samlede fil i build/out er arbejdsfiler.
+# Den faerdige film ligger i SixThings_EP01/EP01/out/.
+build/out/

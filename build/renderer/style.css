@@ -1,0 +1,110 @@
+/* 6 THINGS — renderer stylesheet. Tokens must match STYLE_6THINGS.md exactly. */
+
+/* @font-face declarations live in fonts.css, embedded as data URIs. */
+
+:root {
+  --paper: #F4F1EA;
+  --ink: #111111;
+  --ink2: #5E5B55;
+  --accent: #EC4118;
+  --void: #0B0E12;
+  --studio: #1A2027;
+  --hudline: #5D6B75;
+  --hudtext: #E6ECEF;
+  --huddim: #8E9BA3;
+  --teal: #4FE0CF;
+  --airflow: #8FE8DF;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--void); }
+body { position: relative; font-family: 'IT'; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+.abs { position: absolute; }
+.mode { position: absolute; inset: 0; display: none; }
+.mode.on { display: block; }
+
+/* ---------------- F: cinematic ---------------- */
+#gl { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+
+/* Darkening gradient behind the HUD panel: clear at 45% width, to .82 at the right edge. */
+#vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to right,
+    rgba(11,14,18,0) 0%, rgba(11,14,18,0) 45%,
+    rgba(11,14,18,0.70) 62%, rgba(11,14,18,0.82) 100%);
+}
+
+#brackets { position: absolute; inset: 0; pointer-events: none; }
+#brackets .br { position: absolute; width: 70px; height: 70px; border: 2px solid var(--hudline); }
+#brackets .tl { left: 64px; top: 64px; border-right: 0; border-bottom: 0; }
+#brackets .tr { right: 64px; top: 64px; border-left: 0; border-bottom: 0; }
+#brackets .bl { left: 64px; bottom: 64px; border-right: 0; border-top: 0; }
+#brackets .brr { right: 64px; bottom: 64px; border-left: 0; border-top: 0; }
+
+/* HUD panel slot: x 1120-1820, y 120-800 */
+#panel {
+  left: 1120px; top: 120px; width: 700px; height: 680px;
+  background: rgba(11,14,18,0.55);
+  border: 1.2px solid var(--hudline);
+  border-radius: 6px;
+  overflow: hidden;
+}
+#panel.full { left: 160px; top: 140px; width: 1600px; height: 720px; }
+
+.pHead { display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 22px 12px; border-bottom: 1px solid rgba(93,107,117,0.55); }
+.pTitle { font-family: 'IT'; font-weight: 600; font-size: 22px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--hudtext); }
+.pTag { font-family: 'IT'; font-weight: 500; font-size: 18px; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--huddim); }
+.pBody { position: absolute; left: 0; right: 0; top: 56px; bottom: 44px; }
+.pLegend { position: absolute; left: 22px; right: 22px; bottom: 12px; display: flex; gap: 22px;
+  font-family: 'IT'; font-weight: 400; font-size: 18px; color: var(--huddim); }
+.pLegend i { display: inline-block; width: 22px; height: 0; margin-right: 8px; vertical-align: middle; }
+
+/* Caption chip: x 1120-1820, y 836-920 */
+#caption {
+  left: 1120px; top: 836px; width: 700px; height: 84px;
+  display: flex; align-items: center; gap: 16px;
+  border-top: 1px solid rgba(93,107,117,0.55); padding-top: 10px;
+}
+#caption .idx { font-family: 'JM'; font-weight: 500; font-size: 22px; color: var(--accent); }
+#caption .txt { font-family: 'IT'; font-weight: 500; font-size: 36px; color: var(--hudtext); letter-spacing: 0; }
+
+/* ---------------- E: editorial ---------------- */
+#stageE { background: var(--paper); }
+
+#counter { right: 96px; top: 72px; font-family: 'IT'; font-weight: 600; font-size: 40px;
+  letter-spacing: 0.02em; color: var(--ink); }
+#counter .cur { color: var(--accent); }
+#counter .dash { display: block; width: 56px; height: 5px; background: var(--accent);
+  margin-left: auto; margin-top: 10px; }
+
+#display { left: -20px; top: 150px; width: 1500px;
+  font-family: 'BC'; font-weight: 900; color: var(--ink);
+  font-size: 560px; line-height: 0.80; letter-spacing: -0.015em; text-transform: uppercase; }
+
+#quadcut { right: -70px; top: 318px; width: 1020px; height: 790px;
+  background-repeat: no-repeat; background-position: center; background-size: contain; }
+
+#label { left: 96px; top: 802px; width: 720px; }
+#label .rule { width: 96px; height: 6px; background: var(--accent); margin-bottom: 18px; }
+#label .l1 { font-family: 'IT'; font-weight: 600; font-size: 28px; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--ink); }
+#label .l2 { font-family: 'IT'; font-weight: 500; font-size: 24px; color: var(--ink2); margin-top: 6px; }
+
+#mini { left: 470px; top: 790px; width: 430px; height: 190px; }
+
+#eBody { inset: 0; }
+
+/* E grid typography */
+.h1 { font-family: 'BC'; font-weight: 900; text-transform: uppercase; color: var(--ink);
+  letter-spacing: -0.015em; }
+.colHead { font-family: 'IT'; font-weight: 600; font-size: 28px; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--ink); }
+.small { font-family: 'IT'; font-weight: 500; font-size: 24px; color: var(--ink2); }
+.rule { height: 2px; background: var(--ink); }
+.rule.accent { background: var(--accent); height: 6px; }
+
+/* wipe */
+#wipe { left: 0; top: 0; height: 1080px; width: 0; background: var(--paper); display: none; }
