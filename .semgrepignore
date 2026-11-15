@@ -1,0 +1,4 @@
+# Vendored third-party code is not our source and is not patched here.
+# Semgrep flags minified three.js internals (unsafe-formatstring in its
+# console logging); those findings are not actionable in this repo.
+SixThings_EP01/shared/animation-reference/three.module.js

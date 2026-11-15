@@ -1,0 +1,9 @@
+# Versions that reproduced the ep2 narrator bit-for-bit (max sample diff 3.05e-5 = 16-bit rounding)
+# on the bot box, 5 Nov 2026. The ORIGINAL ep2 package versions were not recorded.
+kokoro-onnx==0.6.1
+onnxruntime==1.31.1
+phonemizer==3.6.0
+espeakng-loader==0.2.4
+numpy==2.5.4
+soundfile
+scipy

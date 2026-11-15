@@ -1,0 +1,370 @@
+[
+ {
+  "path": "DELIVERY_STATUS.json",
+  "bytes": 1623
+ },
+ {
+  "path": "EP01/ASSETS.md",
+  "bytes": 2618
+ },
+ {
+  "path": "EP01/NARRATION.txt",
+  "bytes": 14411
+ },
+ {
+  "path": "EP01/NARRATION_AUDIO.md",
+  "bytes": 1608
+ },
+ {
+  "path": "EP01/PRONUNCIATION.md",
+  "bytes": 2119
+ },
+ {
+  "path": "EP01/README.md",
+  "bytes": 1318
+ },
+ {
+  "path": "EP01/RELEASE_DRAFTS.md",
+  "bytes": 4314
+ },
+ {
+  "path": "EP01/SCRIPT.md",
+  "bytes": 14978
+ },
+ {
+  "path": "EP01/SOURCES_AND_FACT_QA.md",
+  "bytes": 21940
+ },
+ {
+  "path": "EP01/START_EP01.txt",
+  "bytes": 2179
+ },
+ {
+  "path": "EP01/STORYBOARD.md",
+  "bytes": 20579
+ },
+ {
+  "path": "EP01/URL_CHECK_2026-11-12.txt",
+  "bytes": 1463
+ },
+ {
+  "path": "EP01/URL_CHECK_v2_2026-11-12.txt",
+  "bytes": 1559
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s01.phonemes.json",
+  "bytes": 4652
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s02.phonemes.json",
+  "bytes": 5485
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s03.phonemes.json",
+  "bytes": 8028
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s04.phonemes.json",
+  "bytes": 7775
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s05.phonemes.json",
+  "bytes": 7530
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s06.phonemes.json",
+  "bytes": 7293
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s07.phonemes.json",
+  "bytes": 6996
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s08.phonemes.json",
+  "bytes": 7109
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s09.phonemes.json",
+  "bytes": 7729
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s10.phonemes.json",
+  "bytes": 5584
+ },
+ {
+  "path": "EP01/audio/phonemes/sixthings_ep01_p1_s11.phonemes.json",
+  "bytes": 4048
+ },
+ {
+  "path": "EP01/audio/sixthings_ep01_p1_timing.csv",
+  "bytes": 2577
+ },
+ {
+  "path": "EP01/audio/sixthings_ep01_render_summary.json",
+  "bytes": 7482
+ },
+ {
+  "path": "EP01/audio/sixthings_ep01_respell_log.json",
+  "bytes": 6319
+ },
+ {
+  "path": "EP01/audio/sixthings_ep01_respell_log.md",
+  "bytes": 3752
+ },
+ {
+  "path": "EP01/blocks/P1-S01.txt",
+  "bytes": 996
+ },
+ {
+  "path": "EP01/blocks/P1-S02.txt",
+  "bytes": 1060
+ },
+ {
+  "path": "EP01/blocks/P1-S03.txt",
+  "bytes": 1644
+ },
+ {
+  "path": "EP01/blocks/P1-S04.txt",
+  "bytes": 1537
+ },
+ {
+  "path": "EP01/blocks/P1-S05.txt",
+  "bytes": 1517
+ },
+ {
+  "path": "EP01/blocks/P1-S06.txt",
+  "bytes": 1429
+ },
+ {
+  "path": "EP01/blocks/P1-S07.txt",
+  "bytes": 1408
+ },
+ {
+  "path": "EP01/blocks/P1-S08.txt",
+  "bytes": 1407
+ },
+ {
+  "path": "EP01/blocks/P1-S09.txt",
+  "bytes": 1587
+ },
+ {
+  "path": "EP01/blocks/P1-S10.txt",
+  "bytes": 1152
+ },
+ {
+  "path": "EP01/blocks/P1-S11.txt",
+  "bytes": 664
+ },
+ {
+  "path": "EP01/scene-index.json",
+  "bytes": 1549
+ },
+ {
+  "path": "FINAL_QA.md",
+  "bytes": 3449
+ },
+ {
+  "path": "README_DA.md",
+  "bytes": 1712
+ },
+ {
+  "path": "START_HERE_DEEPSEEK.txt",
+  "bytes": 3245
+ },
+ {
+  "path": "VALIDATION.json",
+  "bytes": 1012
+ },
+ {
+  "path": "shared/ASSET_MANIFEST.md",
+  "bytes": 3088
+ },
+ {
+  "path": "shared/LOCAL_PRODUCTION.md",
+  "bytes": 8252
+ },
+ {
+  "path": "shared/SERIES_NOTE_SIX_THINGS.md",
+  "bytes": 2372
+ },
+ {
+  "path": "shared/animation-reference/THREE-LICENSE.txt",
+  "bytes": 1081
+ },
+ {
+  "path": "shared/animation-reference/a.html",
+  "bytes": 320
+ },
+ {
+  "path": "shared/animation-reference/a.js",
+  "bytes": 10403
+ },
+ {
+  "path": "shared/animation-reference/b.html",
+  "bytes": 244
+ },
+ {
+  "path": "shared/animation-reference/b.js",
+  "bytes": 7006
+ },
+ {
+  "path": "shared/animation-reference/c.html",
+  "bytes": 244
+ },
+ {
+  "path": "shared/animation-reference/c.js",
+  "bytes": 5258
+ },
+ {
+  "path": "shared/animation-reference/d.html",
+  "bytes": 320
+ },
+ {
+  "path": "shared/animation-reference/d.js",
+  "bytes": 10666
+ },
+ {
+  "path": "shared/animation-reference/jsm/environments/RoomEnvironment.js",
+  "bytes": 3735
+ },
+ {
+  "path": "shared/animation-reference/lib.js",
+  "bytes": 6015
+ },
+ {
+  "path": "shared/animation-reference/three.module.js",
+  "bytes": 670681
+ },
+ {
+  "path": "shared/brand/eqt-icon-1024.png",
+  "bytes": 87769
+ },
+ {
+  "path": "shared/brand/eqt-icon.svg",
+  "bytes": 1020
+ },
+ {
+  "path": "shared/tools/synthesize_blocks.py",
+  "bytes": 1837
+ },
+ {
+  "path": "shared/tools/verify_package.py",
+  "bytes": 708
+ },
+ {
+  "path": "shared/voice/VOICE-CHAIN.md",
+  "bytes": 3384
+ },
+ {
+  "path": "shared/voice/ep2-voice-sample_kokoro-am_michael-1.188_24k.wav",
+  "bytes": 1786762
+ },
+ {
+  "path": "shared/voice/ep2-voice-sample_transcript.txt",
+  "bytes": 816
+ },
+ {
+  "path": "shared/voice/ep2_voice_chain.py",
+  "bytes": 4799
+ },
+ {
+  "path": "shared/voice/lexicon.json",
+  "bytes": 1538
+ },
+ {
+  "path": "shared/voice/render_narration.py",
+  "bytes": 26976
+ },
+ {
+  "path": "shared/voice/requirements.txt",
+  "bytes": 292
+ },
+ {
+  "path": "shared/voice/voice.lock.json",
+  "bytes": 2042
+ },
+ {
+  "path": "style/STYLE_6THINGS.md",
+  "bytes": 11180
+ },
+ {
+  "path": "style/build_frames.py",
+  "bytes": 15569
+ },
+ {
+  "path": "style/data/sign1_propwash_synthetic.csv",
+  "bytes": 36714
+ },
+ {
+  "path": "style/data/thumb_step_synthetic.csv",
+  "bytes": 21029
+ },
+ {
+  "path": "style/fonts/BarlowCondensed-Black.ttf",
+  "bytes": 105348
+ },
+ {
+  "path": "style/fonts/BarlowCondensed-ExtraBold.ttf",
+  "bytes": 104812
+ },
+ {
+  "path": "style/fonts/InterTight-VariableFont_wght.ttf",
+  "bytes": 580572
+ },
+ {
+  "path": "style/fonts/JetBrainsMono-VariableFont_wght.ttf",
+  "bytes": 189028
+ },
+ {
+  "path": "style/fonts/OFL_BarlowCondensed.txt",
+  "bytes": 4377
+ },
+ {
+  "path": "style/fonts/OFL_InterTight.txt",
+  "bytes": 4383
+ },
+ {
+  "path": "style/fonts/OFL_JetBrainsMono.txt",
+  "bytes": 4399
+ },
+ {
+  "path": "style/frames/a_thumbnail_1280x720.jpg",
+  "bytes": 97707
+ },
+ {
+  "path": "style/frames/a_thumbnail_1920x1080.png",
+  "bytes": 371774
+ },
+ {
+  "path": "style/frames/b_sign01_titlecard_propwash.png",
+  "bytes": 376755
+ },
+ {
+  "path": "style/frames/c_F_hud_beat_sign01.png",
+  "bytes": 1167630
+ },
+ {
+  "path": "style/frames/d_recap_card.png",
+  "bytes": 99602
+ },
+ {
+  "path": "style/frames/e_end_card.png",
+  "bytes": 287181
+ },
+ {
+  "path": "style/src/plate_F_clean_PLACEHOLDER.jpg",
+  "bytes": 144644
+ },
+ {
+  "path": "style/src/quad_cutout_PLACEHOLDER.png",
+  "bytes": 496077
+ },
+ {
+  "path": "style/src/ref_E_editorial.jpg",
+  "bytes": 201854
+ },
+ {
+  "path": "style/src/ref_F_cinematic.jpg",
+  "bytes": 176048
+ }
+]

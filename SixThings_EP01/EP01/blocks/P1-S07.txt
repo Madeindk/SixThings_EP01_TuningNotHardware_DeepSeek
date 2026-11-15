@@ -1,0 +1,9 @@
+Sign five. The quad twitches, but only while your thumbs are moving.
+
+With the sticks centred, it is calm. But slow, gentle turns carry a fine, nervous jitter, or quick stick stabs produce brief shakes that look far too sharp for the input. It is tempting to blame the gyro, or a vibrating mount.
+
+Feedforward responds to how fast the sticks are moving. That makes the quad feel immediate. It also means that a stick signal arriving in uneven steps can become a push on the motors. Radio commands arrive in packets, and dropped or uneven packets create sudden drops and jumps in the feedforward trace. Too much feedforward typically shows up as spikes in the motor traces with big stick steps, and as amplified shaking when the pilot is cold or nervous.
+
+In the log, put the feedforward trace next to the stick input. Spikes that line up with stick movement, and carry into the motor outputs, point here. There is a clean test: fly once with feedforward at zero. If nothing changes, feedforward is not the problem. A temporary wide deadband does the same for the radio link. If that changes nothing, the link is not the cause.
+
+The counter-check. Random wobbles in smooth cinematic footage usually come from a soft or flexy frame, slightly unbalanced props, or worn bearings. If the twitch is there with the sticks centred, in calm air, and the feedforward test makes no difference, go back to the hardware.

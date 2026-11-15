@@ -1,0 +1,11 @@
+Sign four. The quad feels late, or it overshoots every move.
+
+Some pilots call it mushy, or disconnected: you move the stick, and the quad seems to think about it first. Others feel the opposite, a quad that snaps past the point where they wanted it to stop.
+
+This is where the step response earns its place. Analysis tools estimate it from the log: an average picture of how the gyro follows a sudden change in setpoint. A response that rises slowly is lag. A peak that climbs well above the target and rings back is overshoot. One that levels off below the target and stays there is a different fault again: the integrator has not made up the difference.
+
+Why tuning? Because each shape has a known lever. When the gyro lags behind setpoint, the usual levers are feedforward and P. When it overshoots, D is there to dampen it. But too much D can make the response slow, which pilots often describe as mushy. And filter delay shows up as a late rise. All of these are settings.
+
+The counter-check is in the motor traces. If raising P or feedforward does not bring the gyro closer, and the motors are already at their limit, the quad has reached its physical ceiling. That usually points to motors without enough torque. That is a hardware answer, and the log is what lets you give it honestly.
+
+EasyQuadTune reads the step response for each axis from your own log, and it says so when a chart is too weak to support a decision.

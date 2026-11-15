@@ -1,0 +1,9 @@
+Sign three. The quad bounces back at the end of a flip or a roll.
+
+You finish a fast roll and centre the stick, and the quad does not stop cleanly. It goes a little too far, then swings back. In the footage, it looks like a small nod at the end of every move.
+
+In the log, zoom in where the setpoint goes flat. If the gyro rings, several fast cycles around the target, the loop is under-damped, and the balance between P and D is the place to look. If instead the gyro makes one slow return through the target, check the I-term trace. If I is still raised after the move has ended, you are looking at I-term windup.
+
+The mechanism is called integrator windup. During a fast move, a quad that cannot keep up builds a large error, and I accumulates to correct it. When the flip stops, that stored I drives a movement in the reverse direction, which slowly fades away. I-term relax limits that accumulation during fast stick movement. On quads with low authority, too much I is the most common cause.
+
+The counter-check has two parts. There is also a look-alike: random wobbles at the end of some flips, but not all, especially fast ones late in the flight. Those are often caused by delayed motor start-up: idle set too low, props that ask too much of the motors, or weak ESC start-up at low RPM. That is configuration and hardware matching, not a PID gain. And if the motors were already at their limits during the move, the controller had no authority left to stop it. That is a thrust limit, and no gain can fix it.

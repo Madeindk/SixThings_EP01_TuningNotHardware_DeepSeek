@@ -1,0 +1,5 @@
+The quad wobbles as it drops behind a tree. The motors come down warm. After a fast roll, the nose swings back a little, as if it changed its mind. And the obvious thought arrives: something is broken. A motor, a bearing, maybe the flight controller itself.
+
+Sometimes that is exactly right. A bent prop or a rough bearing will never be fixed by a number in a menu. But many symptoms that feel like failing hardware are something else: a control loop doing precisely what it was told to do, with settings that do not suit this aircraft, these props, or this way of flying.
+
+With Blackbox logging switched on, the flight controller records what the sticks asked for, what the gyro measured, and what the motors were told to do. In this episode we go through six signs that a problem is more likely to be the tune than the hardware. For each one: what you feel, what it looks like in the log, why it points at tuning, and the honest counter-check that would send you back to the workbench instead.

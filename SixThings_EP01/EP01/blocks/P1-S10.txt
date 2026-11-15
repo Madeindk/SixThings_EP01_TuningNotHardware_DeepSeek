@@ -1,0 +1,7 @@
+None of this works if the log cannot answer the question. A hover-only log can tell you about noise, but it has no hard stop to measure. So fly with a purpose.
+
+Log at a rate high enough to see vibration. A log can only show frequencies up to half its own sample rate, so the lowest logging rates show gross problems, but not subtle issues like vibration or tuning artifacts. Start with fresh, undamaged props. Fly a few slow throttle sweeps in clean air, so the spectrum can separate noise that follows RPM from noise that stays still. Then make isolated roll flicks and pitch flicks, one axis at a time, with a pause between them. Add a few throttle chops and drops for propwash, and a few full punch-outs.
+
+Change one thing at a time, and log the same moves again. Never change the props and the tune on the same flight, or the next log cannot tell you which change did what. After every change, land and check motor temperature. A careful touch of the motor bells tells you things the log cannot.
+
+And if you want a second opinion on the log itself, EasyQuadTune can tell you whether it is good enough to measure, and which manoeuvres are missing.

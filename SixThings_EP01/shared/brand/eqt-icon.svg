@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Easyquadtune">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9c873"/>
+      <stop offset="1" stop-color="#b8912f"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0b111d"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="none" stroke="url(#g)" stroke-opacity="0.55"/>
+  <!-- four rotors: a quad, seen from above -->
+  <g stroke="url(#g)" stroke-width="2.4" fill="none" stroke-linecap="round">
+    <circle cx="17" cy="17" r="6.5"/>
+    <circle cx="47" cy="17" r="6.5"/>
+    <circle cx="17" cy="47" r="6.5"/>
+    <circle cx="47" cy="47" r="6.5"/>
+    <path d="M22.5 22.5 28 28M41.5 22.5 36 28M22.5 41.5 28 36M41.5 41.5 36 36"/>
+  </g>
+  <!-- the log trace through the middle -->
+  <path d="M26 32h3l2.5-5 3 10 2.5-5h3" stroke="url(#g)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

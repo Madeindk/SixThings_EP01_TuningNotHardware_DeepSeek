@@ -1,0 +1,48 @@
+{
+  "decision": "Thomas, 12 Nov 2026, Europe/Copenhagen: chose comparison sample 6 (bm_daniel) as the narrator from EP5 onward. EP4 Part 2 and earlier episodes keep am_michael and must not be changed.",
+  "engine": "Kokoro TTS v1.0 via kokoro-onnx (ONNX)",
+  "model_file": {
+    "name": "kokoro-v1.0.onnx",
+    "bytes": 325532387,
+    "sha256": "7d5df8ecf7d4b1878015a32686053fd0eebe2bc377234608764cc0ef3636a6c5",
+    "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+  },
+  "voices_file": {
+    "name": "voices-v1.0.bin",
+    "bytes": 28214398,
+    "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d",
+    "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+  },
+  "voice": "bm_daniel",
+  "speed": 1.0,
+  "lang": "en-gb",
+  "input": "phonemes (espeak via kokoro tokenizer) after text respell / NORM table, Betaflight phoneme fix (en-gb BEE-ta -> BAY-ta), and lexicon.json (Fresnel fruh-NELL). Official manuscript files are not rewritten.",
+  "native_sample_rate_hz": 24000,
+  "trim": {
+    "threshold_abs": 0.01,
+    "head_pad_samples": 480,
+    "tail_pad_samples": 1200,
+    "fades": "none"
+  },
+  "sentence_gap_s": 0.28,
+  "paragraph_gap_s": 0.7,
+  "scene_gap_s": 0.7,
+  "resample_to_48k": "scipy.signal.resample_poly(a, 2, 1)",
+  "loudnorm": {
+    "I_LUFS": -16.0,
+    "TP_dBTP": -1.5,
+    "LRA": 11.0,
+    "passes": 2,
+    "note": "Same two-pass ffmpeg loudnorm as the approved bm_daniel sample. Delivery is 48 kHz 24-bit WAV + 192 kb/s MP3."
+  },
+  "approved_sample": "voice_samples/6_kokoro_bm_daniel.mp3 (bm_daniel, speed 1.0, en-gb, SGAP 0.28, two-pass loudnorm -16 LUFS)",
+  "renderer": "shared/voice/render_narration.py",
+  "lexicon": "shared/voice/lexicon.json",
+  "historical_ep1_to_ep4": {
+    "voice": "am_michael",
+    "speed": 1.188,
+    "lang": "en-us",
+    "script": "ep2_voice_chain.py",
+    "note": "Do not use this chain for EP5\u201310. Do not retouch EP4 Part 2 or earlier audio."
+  }
+}

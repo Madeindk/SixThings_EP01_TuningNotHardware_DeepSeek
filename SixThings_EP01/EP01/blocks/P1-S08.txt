@@ -1,0 +1,9 @@
+Sign six. It flies beautifully, until you punch out.
+
+At low and mid throttle, the quad is locked in. But on a long punch-out, or in fast forward flight, there is fast oscillation, or an audible flutter. Ease off, and it disappears.
+
+In the log, the clue is the throttle trace. Mark the oscillation and check where the throttle was. If the shaking appears only above a certain throttle position, and the same moves at cruise are clean, the problem follows throttle.
+
+Why tuning? Gains tuned around hover can be too strong near full throttle, where thrust no longer grows in a simple straight line with the motor command. Betaflight has a feature built for exactly this: TPA, throttle PID attenuation, which reduces gains as throttle rises past a breakpoint. A quad that flies fine at low and mid throttle, but oscillates only at high throttle, is the situation TPA was made for. The trade-off is consistency. The quad will respond a little differently at different throttle positions.
+
+The counter-check. A frequency that stays fixed, wherever the throttle is, behaves like a structure, not a gain. Frames, arms, standoffs and mounts all have their own resonances. If a narrow peak sits at the same frequency from hover to full throttle, check the frame hardware before you change the tune. EasyQuadTune shows that frequency view from your log. Naming the physical cause still needs your hands on the quad.

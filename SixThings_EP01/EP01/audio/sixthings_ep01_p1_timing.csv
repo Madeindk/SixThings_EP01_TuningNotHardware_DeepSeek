@@ -1,0 +1,12 @@
+scene,file,mp3,duration_s,duration_tc,start_s,start_tc,end_s,end_tc,first_words,word_count,sentences,loudness,true_peak,loudnorm_input_i
+P1-S01,sixthings_ep01_p1_s01.wav,sixthings_ep01_p1_s01.mp3,56.380,00:00:56.380,0.000,00:00:00.000,56.380,00:00:56.380,The quad wobbles as it drops behind a,184,11,I:         -16.1 LUFS,Peak:       -1.5 dBFS,-21.43
+P1-S02,sixthings_ep01_p1_s02.wav,sixthings_ep01_p1_s02.mp3,64.980,00:01:04.980,57.080,00:00:57.080,122.060,00:02:02.060,Almost everything here comes down to two lines.,192,16,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.36
+P1-S03,sixthings_ep01_p1_s03.wav,sixthings_ep01_p1_s03.mp3,97.770,00:01:37.770,122.760,00:02:02.760,220.530,00:03:40.530,Sign one. The quad wobbles when it falls,295,21,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.36
+P1-S04,sixthings_ep01_p1_s04.wav,sixthings_ep01_p1_s04.mp3,94.337,00:01:34.337,221.230,00:03:41.230,315.566,00:05:15.566,"Sign two. The motors come down hot, but",279,22,I:         -16.1 LUFS,Peak:       -1.5 dBFS,-21.42
+P1-S05,sixthings_ep01_p1_s05.wav,sixthings_ep01_p1_s05.mp3,91.493,00:01:31.493,316.266,00:05:16.266,407.759,00:06:47.759,Sign three. The quad bounces back at the,285,20,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.35
+P1-S06,sixthings_ep01_p1_s06.wav,sixthings_ep01_p1_s06.mp3,86.916,00:01:26.916,408.459,00:06:48.459,495.375,00:08:15.375,"Sign four. The quad feels late, or it",262,21,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.31
+P1-S07,sixthings_ep01_p1_s07.wav,sixthings_ep01_p1_s07.mp3,85.108,00:01:25.108,496.075,00:08:16.075,581.183,00:09:41.183,"Sign five. The quad twitches, but only while",246,19,I:         -16.1 LUFS,Peak:       -1.5 dBFS,-21.31
+P1-S08,sixthings_ep01_p1_s08.wav,sixthings_ep01_p1_s08.mp3,85.720,00:01:25.720,581.883,00:09:41.883,667.603,00:11:07.603,"Sign six. It flies beautifully, until you punch",238,20,I:         -16.1 LUFS,Peak:       -1.5 dBFS,-21.40
+P1-S09,sixthings_ep01_p1_s09.wav,sixthings_ep01_p1_s09.mp3,94.491,00:01:34.491,668.303,00:11:08.303,762.793,00:12:42.793,"Now the other side, because a log is",283,20,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.45
+P1-S10,sixthings_ep01_p1_s10.wav,sixthings_ep01_p1_s10.mp3,68.557,00:01:08.557,763.493,00:12:43.493,832.051,00:13:52.050,None of this works if the log cannot,213,14,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.40
+P1-S11,sixthings_ep01_p1_s11.wav,sixthings_ep01_p1_s11.mp3,43.042,00:00:43.042,832.750,00:13:52.750,875.793,00:14:35.793,Six signs. Wobble in your own wash. Hot,124,16,I:         -16.0 LUFS,Peak:       -1.5 dBFS,-21.28

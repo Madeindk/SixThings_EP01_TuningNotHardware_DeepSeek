@@ -1,0 +1,112 @@
+# 6 Signs Your Quad Has a Tuning Problem, Not a Hardware Problem · Six Things EP01
+
+## P1-S01 — Before you buy the part
+The quad wobbles as it drops behind a tree. The motors come down warm. After a fast roll, the nose swings back a little, as if it changed its mind. And the obvious thought arrives: something is broken. A motor, a bearing, maybe the flight controller itself.
+
+Sometimes that is exactly right. A bent prop or a rough bearing will never be fixed by a number in a menu. But many symptoms that feel like failing hardware are something else: a control loop doing precisely what it was told to do, with settings that do not suit this aircraft, these props, or this way of flying.
+
+With Blackbox logging switched on, the flight controller records what the sticks asked for, what the gyro measured, and what the motors were told to do. In this episode we go through six signs that a problem is more likely to be the tune than the hardware. For each one: what you feel, what it looks like in the log, why it points at tuning, and the honest counter-check that would send you back to the workbench instead.
+
+## P1-S02 — Two lines and one rule
+Almost everything here comes down to two lines. Setpoint is the rotation rate your sticks are asking for. Gyro is the rotation rate the quad actually achieved. The difference between them is the error, and the PID controller exists to shrink that error, over and over, by changing motor speeds.
+
+In a perfect world, the gyro line would sit exactly on top of the setpoint line. It cannot, because real motors need time to speed up and slow down. But the shape of the gap is full of information. A gap that rings, a gap that lingers, a gap that only appears at certain throttle positions. Each one tells a different story.
+
+Keep one rule in mind. Tuning problems tend to follow the conditions of the flight: throttle, stick speed, the kind of move. Hardware problems tend to follow the hardware. They stay at one frequency, sit on one motor or one arm, and change when you swap a part. The rule is not perfect, but it runs through all six signs.
+
+And before any of this, check the mechanics first. Tuning a quad that is physically damaged only hides the damage.
+
+## P1-S03 — Sign one: wobble in your own wash
+Sign one. The quad wobbles when it falls through its own air.
+
+You chop the throttle and drop behind an obstacle, or make a hard reversal, and for a moment the picture shakes. Then it settles as the quad flies out into clean air. That is propwash. The simple explanation is turbulence from the quad's own props. The fuller one is that in reverse airflow, the blades can stall, then suddenly regain their thrust as the motors speed up. The controller asks for a little more thrust, and gets far more than it expected.
+
+In the log, look at the moments when throttle is low and the quad is descending or braking. The gyro shows a burst of oscillation that begins with the disturbed air and fades as the quad leaves it, not locked to the instant the stick stopped. In a spectrum, on a typical five-inch quad, it sits low, below about a hundred hertz, well under the band where motor and prop noise live.
+
+This sign sits closest to the border. Prop choice matters a great deal: lower-pitch props are far more forgiving in reverse flow. But how well a given quad fights propwash also depends on its settings. The D-term is the part of the loop fast enough to respond. Filter delay matters too: the more the gyro signal is delayed, the later every correction arrives. And dynamic idle, which keeps the motors above a minimum RPM, helps keep the props out of that stalled region and ready to respond.
+
+The counter-check. Propwash that suddenly gets worse, after a crash or on a quad that used to handle it well, deserves an inspection: loose screws, a cracked frame plate, rough bearings, a loose motor bell, damaged props. Fix those first. Then tune.
+
+## P1-S04 — Sign two: hot motors on clean props
+Sign two. The motors come down hot, but the props are fresh and nothing looks wrong.
+
+After a short flight, the motor bells are far warmer than they should be. Maybe there is a rough, grinding sound in a hover. Nothing is bent, nothing is loose, and still something is cooking the motors.
+
+A common explanation is the D-term. D reacts to how fast the error is changing, which makes it very sensitive to high-frequency vibration. If too much noise gets through the filters, D turns that noise into rapid motor commands, faster than the motors can follow, and the effort ends up as heat.
+
+In the log, a D-term that looks like a thick, fuzzy band even in calm cruise is a warning. So are motor outputs that stay busy and jagged while the quad is barely moving. The controller is reacting to vibration, not to flight. The spectrum shows where that noise lives. Motor and prop noise climbs with throttle, and an RPM filter is designed to follow it, placing notch filters on each motor's frequency and its harmonics.
+
+Why tuning? Because the cause is a balance between gain and filtering. More D, or less filtering, lets more noise reach the motors. Both are settings, and both can be walked back.
+
+The counter-check. If the raw gyro is already noisy with default filters, the answer is not more filtering, but a search for mechanical or electrical causes. And if only one motor runs hot, look at that motor, its bearing and its prop first. The tune is shared by all four. A fault that belongs to one of them is more likely to be in the part.
+
+## P1-S05 — Sign three: bounce-back
+Sign three. The quad bounces back at the end of a flip or a roll.
+
+You finish a fast roll and centre the stick, and the quad does not stop cleanly. It goes a little too far, then swings back. In the footage, it looks like a small nod at the end of every move.
+
+In the log, zoom in where the setpoint goes flat. If the gyro rings, several fast cycles around the target, the loop is under-damped, and the balance between P and D is the place to look. If instead the gyro makes one slow return through the target, check the I-term trace. If I is still raised after the move has ended, you are looking at I-term windup.
+
+The mechanism is called integrator windup. During a fast move, a quad that cannot keep up builds a large error, and I accumulates to correct it. When the flip stops, that stored I drives a movement in the reverse direction, which slowly fades away. I-term relax limits that accumulation during fast stick movement. On quads with low authority, too much I is the most common cause.
+
+The counter-check has two parts. There is also a look-alike: random wobbles at the end of some flips, but not all, especially fast ones late in the flight. Those are often caused by delayed motor start-up: idle set too low, props that ask too much of the motors, or weak ESC start-up at low RPM. That is configuration and hardware matching, not a PID gain. And if the motors were already at their limits during the move, the controller had no authority left to stop it. That is a thrust limit, and no gain can fix it.
+
+## P1-S06 — Sign four: gyro late, gyro past
+Sign four. The quad feels late, or it overshoots every move.
+
+Some pilots call it mushy, or disconnected: you move the stick, and the quad seems to think about it first. Others feel the opposite, a quad that snaps past the point where they wanted it to stop.
+
+This is where the step response earns its place. Analysis tools estimate it from the log: an average picture of how the gyro follows a sudden change in setpoint. A response that rises slowly is lag. A peak that climbs well above the target and rings back is overshoot. One that levels off below the target and stays there is a different fault again: the integrator has not made up the difference.
+
+Why tuning? Because each shape has a known lever. When the gyro lags behind setpoint, the usual levers are feedforward and P. When it overshoots, D is there to dampen it. But too much D can make the response slow, which pilots often describe as mushy. And filter delay shows up as a late rise. All of these are settings.
+
+The counter-check is in the motor traces. If raising P or feedforward does not bring the gyro closer, and the motors are already at their limit, the quad has reached its physical ceiling. That usually points to motors without enough torque. That is a hardware answer, and the log is what lets you give it honestly.
+
+EasyQuadTune reads the step response for each axis from your own log, and it says so when a chart is too weak to support a decision.
+
+## P1-S07 — Sign five: a twitch that follows your thumbs
+Sign five. The quad twitches, but only while your thumbs are moving.
+
+With the sticks centred, it is calm. But slow, gentle turns carry a fine, nervous jitter, or quick stick stabs produce brief shakes that look far too sharp for the input. It is tempting to blame the gyro, or a vibrating mount.
+
+Feedforward responds to how fast the sticks are moving. That makes the quad feel immediate. It also means that a stick signal arriving in uneven steps can become a push on the motors. Radio commands arrive in packets, and dropped or uneven packets create sudden drops and jumps in the feedforward trace. Too much feedforward typically shows up as spikes in the motor traces with big stick steps, and as amplified shaking when the pilot is cold or nervous.
+
+In the log, put the feedforward trace next to the stick input. Spikes that line up with stick movement, and carry into the motor outputs, point here. There is a clean test: fly once with feedforward at zero. If nothing changes, feedforward is not the problem. A temporary wide deadband does the same for the radio link. If that changes nothing, the link is not the cause.
+
+The counter-check. Random wobbles in smooth cinematic footage usually come from a soft or flexy frame, slightly unbalanced props, or worn bearings. If the twitch is there with the sticks centred, in calm air, and the feedforward test makes no difference, go back to the hardware.
+
+## P1-S08 — Sign six: shaking that arrives with throttle
+Sign six. It flies beautifully, until you punch out.
+
+At low and mid throttle, the quad is locked in. But on a long punch-out, or in fast forward flight, there is fast oscillation, or an audible flutter. Ease off, and it disappears.
+
+In the log, the clue is the throttle trace. Mark the oscillation and check where the throttle was. If the shaking appears only above a certain throttle position, and the same moves at cruise are clean, the problem follows throttle.
+
+Why tuning? Gains tuned around hover can be too strong near full throttle, where thrust no longer grows in a simple straight line with the motor command. Betaflight has a feature built for exactly this: TPA, throttle PID attenuation, which reduces gains as throttle rises past a breakpoint. A quad that flies fine at low and mid throttle, but oscillates only at high throttle, is the situation TPA was made for. The trade-off is consistency. The quad will respond a little differently at different throttle positions.
+
+The counter-check. A frequency that stays fixed, wherever the throttle is, behaves like a structure, not a gain. Frames, arms, standoffs and mounts all have their own resonances. If a narrow peak sits at the same frequency from hover to full throttle, check the frame hardware before you change the tune. EasyQuadTune shows that frequency view from your log. Naming the physical cause still needs your hands on the quad.
+
+## P1-S09 — When it really is hardware
+Now the other side, because a log is just as good at pointing at hardware.
+
+A problem that stays on one motor, one arm, or one axis, while the tune is shared by all of them, points at the part. A narrow tone that holds its frequency while throttle changes behaves like a mechanical resonance. A raised noise floor across the whole spectrum, with no single peak, often comes from many small sources at once: damaged props, a hard-mounted flight controller, something rattling. Compare the motor outputs side by side, too. A motor with a loose prop, a rough bearing or a failing motor often has to be driven harder than the other three, because it is making less thrust. And motor outputs pinned at their limit mean the quad is out of authority. No gain can create thrust that is not there.
+
+The simplest test is to change one mechanical thing, and fly the same moves again. Fit a known-good set of props. Tighten the arm and motor screws. Swap a suspect motor to another arm, and see whether the problem moves with it. If the peak moves or disappears, you have found something. If nothing changes, the cause is somewhere else.
+
+A log also has limits. It cannot reliably judge a bearing from a single flight, and it cannot prove that a filter change helped without a before and after comparison: same props, same battery, same moves. That is why filtering is not a repair. A filter can stop the loop from amplifying a vibration. It cannot tighten a screw, or straighten a prop. Hide a mechanical fault behind heavier filtering, and the symptom goes quiet while the hardware keeps wearing.
+
+## P1-S10 — A log that can answer
+None of this works if the log cannot answer the question. A hover-only log can tell you about noise, but it has no hard stop to measure. So fly with a purpose.
+
+Log at a rate high enough to see vibration. A log can only show frequencies up to half its own sample rate, so the lowest logging rates show gross problems, but not subtle issues like vibration or tuning artifacts. Start with fresh, undamaged props. Fly a few slow throttle sweeps in clean air, so the spectrum can separate noise that follows RPM from noise that stays still. Then make isolated roll flicks and pitch flicks, one axis at a time, with a pause between them. Add a few throttle chops and drops for propwash, and a few full punch-outs.
+
+Change one thing at a time, and log the same moves again. Never change the props and the tune on the same flight, or the next log cannot tell you which change did what. After every change, land and check motor temperature. A careful touch of the motor bells tells you things the log cannot.
+
+And if you want a second opinion on the log itself, EasyQuadTune can tell you whether it is good enough to measure, and which manoeuvres are missing.
+
+## P1-S11 — The right order
+Six signs. Wobble in your own wash. Hot motors on clean props. Bounce-back at the end of a move. A gyro that arrives late, or goes too far. A twitch that follows your thumbs. And shaking that arrives only with throttle.
+
+None of them proves the hardware is fine. What they change is the order of the questions. Before you spend money, ask whether the problem follows the flight, or follows the part. Check the mechanics. Read the log. Change one thing, and fly the same moves again.
+
+The quad has already recorded what happened. Very often, the answer to whether you need a new part or a new setting is in that record. You just have to read it in the right order.

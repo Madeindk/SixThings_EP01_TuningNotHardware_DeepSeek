@@ -1,0 +1,156 @@
+[
+  {
+    "paragraph": 0,
+    "sentence": 0,
+    "official_text": "Sign two.",
+    "tts_text": "Sign two.",
+    "phonemes": "sˈaɪn tˈuː."
+  },
+  {
+    "paragraph": 0,
+    "sentence": 1,
+    "official_text": "The motors come down hot, but the props are fresh and nothing looks wrong.",
+    "tts_text": "The motors come down hot, but the props are fresh and nothing looks wrong.",
+    "phonemes": "ðə mˈəʊtəz kˈʌm dˌaʊn hˈɒt, bˌʌt ðə pɹˈɒps ɑː fɹˈɛʃ and nˈʌθɪŋ lˈʊks ɹˈɒŋ."
+  },
+  {
+    "paragraph": 1,
+    "sentence": 0,
+    "official_text": "After a short flight, the motor bells are far warmer than they should be.",
+    "tts_text": "After a short flight, the motor bells are far warmer than they should be.",
+    "phonemes": "ˈaftəɹ ɐ ʃˈɔːt flˈaɪt, ðə mˈəʊtə bˈɛlz ɑː fˈɑː wˈɔːmə ðɐn ðeɪ ʃˌʊd bˈiː."
+  },
+  {
+    "paragraph": 1,
+    "sentence": 1,
+    "official_text": "Maybe there is a rough, grinding sound in a hover.",
+    "tts_text": "Maybe there is a rough, grinding sound in a hover.",
+    "phonemes": "mˈeɪbiː ðeəɹ ɪz ɐ ɹˈʌf, ɡɹˈaɪndɪŋ sˈaʊnd ɪn ɐ hˈɒvə."
+  },
+  {
+    "paragraph": 1,
+    "sentence": 2,
+    "official_text": "Nothing is bent, nothing is loose, and still something is cooking the motors.",
+    "tts_text": "Nothing is bent, nothing is loose, and still something is cooking the motors.",
+    "phonemes": "nˈʌθɪŋ ɪz bˈɛnt, nˈʌθɪŋ ɪz lˈuːs, and stˈɪl sˈʌmθɪŋ ɪz kˈʊkɪŋ ðə mˈəʊtəz."
+  },
+  {
+    "paragraph": 2,
+    "sentence": 0,
+    "official_text": "A common explanation is the D-term.",
+    "tts_text": "A common explanation is the D-term.",
+    "phonemes": "ɐ kˈɒmən ɛksplɐnˈeɪʃən ɪz ðə dˈiːtˈɜːm."
+  },
+  {
+    "paragraph": 2,
+    "sentence": 1,
+    "official_text": "D reacts to how fast the error is changing, which makes it very sensitive to high-frequency vibration.",
+    "tts_text": "D reacts to how fast the error is changing, which makes it very sensitive to high-frequency vibration.",
+    "phonemes": "dˈiː ɹɪˈakts tə hˌaʊ fˈast ðɪ ˈɛɹəɹ ɪz tʃˈeɪndʒɪŋ, wˌɪtʃ mˌeɪks ɪt vˈɛɹi sˈɛnsɪtˌɪv tə hˈaɪfɹˈiːkwənsi vaɪbɹˈeɪʃən."
+  },
+  {
+    "paragraph": 2,
+    "sentence": 2,
+    "official_text": "If too much noise gets through the filters, D turns that noise into rapid motor commands, faster than the motors can follow, and the effort ends up as heat.",
+    "tts_text": "If too much noise gets through the filters, D turns that noise into rapid motor commands, faster than the motors can follow, and the effort ends up as heat.",
+    "phonemes": "ɪf tˈuː mʌtʃ nˈɔɪz ɡˈɛts θɹuː ðə fˈɪltəz, dˈiː tˈɜːnz ðat nˈɔɪz ˌɪntʊ ɹˈapɪd mˈəʊtə kəmˈandz, fˈastə ðɐn ðə mˈəʊtəz kan fˈɒləʊ, and ðɪ ˈɛfət ˈɛndz ˌʌp az hˈiːt."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 0,
+    "official_text": "In the log, a D-term that looks like a thick, fuzzy band even in calm cruise is a warning.",
+    "tts_text": "In the log, a D-term that looks like a thick, fuzzy band even in calm cruise is a warning.",
+    "phonemes": "ɪnðə lˈɒɡ, ɐ dˈiːtˈɜːm ðat lˈʊks lˈaɪk ɐ θˈɪk, fˈʌzi bˈand ˈiːvən ɪn kˈɑːm kɹˈuːz ɪz ɐ wˈɔːnɪŋ."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 1,
+    "official_text": "So are motor outputs that stay busy and jagged while the quad is barely moving.",
+    "tts_text": "So are motor outputs that stay busy and jagged while the quad is barely moving.",
+    "phonemes": "sˌəʊ ɑː mˈəʊtəɹ ˈaʊtpˌʊts ðat stˈeɪ bˈɪzi and dʒˈaɡɪd wˌaɪl ðə kwˈɒd ɪz bˈeəli mˈuːvɪŋ."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 2,
+    "official_text": "The controller is reacting to vibration, not to flight.",
+    "tts_text": "The controller is reacting to vibration, not to flight.",
+    "phonemes": "ðə kəntɹˈəʊləɹ ɪz ɹɪˈaktɪŋ tə vaɪbɹˈeɪʃən, nˌɒt tə flˈaɪt."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 3,
+    "official_text": "The spectrum shows where that noise lives.",
+    "tts_text": "The spectrum shows where that noise lives.",
+    "phonemes": "ðə spˈɛktɹəm ʃˈəʊz wˌeə ðat nˈɔɪz lˈaɪvz."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 4,
+    "official_text": "Motor and prop noise climbs with throttle, and an RPM filter is designed to follow it, placing notch filters on each motor's frequency and its harmonics.",
+    "tts_text": "Motor and prop noise climbs with throttle, and an RPM filter is designed to follow it, placing notch filters on each motor's frequency and its harmonics.",
+    "phonemes": "mˈəʊtəɹ and pɹˈɒp nˈɔɪz klˈaɪmz wɪð θɹˈɒtəl, and ɐn ˈɑː pˈiː ˈɛm fˈɪltəɹ ɪz dɪzˈaɪnd tə fˈɒləʊ ɪt, plˈeɪsɪŋ nˈɒtʃ fˈɪltəz ˌɒn ˈiːtʃ mˈəʊtəz fɹˈiːkwənsi and ɪts hɑːmˈɒnɪks."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 0,
+    "official_text": "Why tuning?",
+    "tts_text": "Why tuning?",
+    "phonemes": "wˌaɪ tjˈuːnɪŋ?"
+  },
+  {
+    "paragraph": 4,
+    "sentence": 1,
+    "official_text": "Because the cause is a balance between gain and filtering.",
+    "tts_text": "Because the cause is a balance between gain and filtering.",
+    "phonemes": "bɪkˈɒz ðə kˈɔːz ɪz ɐ bˈaləns bɪtwˌiːn ɡˈeɪn and fˈɪltəɹɪŋ."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 2,
+    "official_text": "More D, or less filtering, lets more noise reach the motors.",
+    "tts_text": "More D, or less filtering, lets more noise reach the motors.",
+    "phonemes": "mˈɔː dˈiː, ɔː lˈɛs fˈɪltəɹɪŋ, lˈɛts mˈɔː nˈɔɪz ɹˈiːtʃ ðə mˈəʊtəz."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 3,
+    "official_text": "Both are settings, and both can be walked back.",
+    "tts_text": "Both are settings, and both can be walked back.",
+    "phonemes": "bˈəʊθ ɑː sˈɛtɪŋz, and bˈəʊθ kan biː wˈɔːkt bˈak."
+  },
+  {
+    "paragraph": 5,
+    "sentence": 0,
+    "official_text": "The counter-check.",
+    "tts_text": "The counter-check.",
+    "phonemes": "ðə kˈaʊntətʃˈɛk."
+  },
+  {
+    "paragraph": 5,
+    "sentence": 1,
+    "official_text": "If the raw gyro is already noisy with default filters, the answer is not more filtering, but a search for mechanical or electrical causes.",
+    "tts_text": "If the raw gyro is already noisy with default filters, the answer is not more filtering, but a search for mechanical or electrical causes.",
+    "phonemes": "ɪf ðə ɹˈɔː dʒˈaɪɹəʊ ɪz ɔːlɹˌɛdi nˈɔɪzi wɪð dɪfˈɒlt fˈɪltəz, ðɪ ˈansəɹ ɪz nˌɒt mˈɔː fˈɪltəɹɪŋ, bˌʌt ɐ sˈɜːtʃ fɔː mɪkˈanɪkəl ɔːɹ ɪlˈɛktɹɪkəl kˈɔːzɪz."
+  },
+  {
+    "paragraph": 5,
+    "sentence": 2,
+    "official_text": "And if only one motor runs hot, look at that motor, its bearing and its prop first.",
+    "tts_text": "And if only one motor runs hot, look at that motor, its bearing and its prop first.",
+    "phonemes": "and ɪf ˈəʊnli wˈɒn mˈəʊtə ɹˈʌnz hˈɒt, lˈʊk at ðat mˈəʊtə, ɪts bˈeəɹɪŋ and ɪts pɹˈɒp fˈɜːst."
+  },
+  {
+    "paragraph": 5,
+    "sentence": 3,
+    "official_text": "The tune is shared by all four.",
+    "tts_text": "The tune is shared by all four.",
+    "phonemes": "ðə tjˈuːn ɪz ʃˈeəd baɪ ˈɔːl fˈɔː."
+  },
+  {
+    "paragraph": 5,
+    "sentence": 4,
+    "official_text": "A fault that belongs to one of them is more likely to be in the part.",
+    "tts_text": "A fault that belongs to one of them is more likely to be in the part.",
+    "phonemes": "ɐ fˈɒlt ðat bɪlˈɒŋz tə wˈɒn ɒv ðˌɛm ɪz mˈɔː lˈaɪkli təbi ɪnðə pˈɑːt."
+  }
+]

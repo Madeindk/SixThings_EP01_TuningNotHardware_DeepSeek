@@ -1,0 +1,9 @@
+Sign one. The quad wobbles when it falls through its own air.
+
+You chop the throttle and drop behind an obstacle, or make a hard reversal, and for a moment the picture shakes. Then it settles as the quad flies out into clean air. That is propwash. The simple explanation is turbulence from the quad's own props. The fuller one is that in reverse airflow, the blades can stall, then suddenly regain their thrust as the motors speed up. The controller asks for a little more thrust, and gets far more than it expected.
+
+In the log, look at the moments when throttle is low and the quad is descending or braking. The gyro shows a burst of oscillation that begins with the disturbed air and fades as the quad leaves it, not locked to the instant the stick stopped. In a spectrum, on a typical five-inch quad, it sits low, below about a hundred hertz, well under the band where motor and prop noise live.
+
+This sign sits closest to the border. Prop choice matters a great deal: lower-pitch props are far more forgiving in reverse flow. But how well a given quad fights propwash also depends on its settings. The D-term is the part of the loop fast enough to respond. Filter delay matters too: the more the gyro signal is delayed, the later every correction arrives. And dynamic idle, which keeps the motors above a minimum RPM, helps keep the props out of that stalled region and ready to respond.
+
+The counter-check. Propwash that suddenly gets worse, after a crash or on a quad that used to handle it well, deserves an inspection: loose screws, a cracked frame plate, rough bearings, a loose motor bell, damaged props. Fix those first. Then tune.

@@ -1,0 +1,7 @@
+Almost everything here comes down to two lines. Setpoint is the rotation rate your sticks are asking for. Gyro is the rotation rate the quad actually achieved. The difference between them is the error, and the PID controller exists to shrink that error, over and over, by changing motor speeds.
+
+In a perfect world, the gyro line would sit exactly on top of the setpoint line. It cannot, because real motors need time to speed up and slow down. But the shape of the gap is full of information. A gap that rings, a gap that lingers, a gap that only appears at certain throttle positions. Each one tells a different story.
+
+Keep one rule in mind. Tuning problems tend to follow the conditions of the flight: throttle, stick speed, the kind of move. Hardware problems tend to follow the hardware. They stay at one frequency, sit on one motor or one arm, and change when you swap a part. The rule is not perfect, but it runs through all six signs.
+
+And before any of this, check the mechanics first. Tuning a quad that is physically damaged only hides the damage.
