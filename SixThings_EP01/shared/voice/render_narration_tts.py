@@ -117,15 +117,40 @@ TTS_RESPELLS = [
 MAX_CONCURRENT = 6
 RETRIES = 4
 
-# Chatterbox mumbles towards the end of long sentences: a 37-word sentence with
-# three commas came out unclear at 0:07 in scene 1. Splitting at commas gives it
-# short prosody units. COMMA_GAP is deliberately shorter than SGAP because it is
-# a pause inside a sentence, not a sentence boundary. Edge handles long text
-# cleanly and keeps whole sentences.
+# Chatterbox mumbles or loops towards the end of long text: a 22-word chunk
+# stalled for over nine minutes without producing audio, and a 16-word sentence
+# came out unclear at 0:07 in scene 1. Chatterbox therefore gets short prosody
+# units. Splitting is done in stages, because splitting a long sentence at its
+# commas still left a 22-word piece:
+#   1. split at , ; : then 2. split before a conjunction then 3. hard split.
+# COMMA_GAP is shorter than SGAP because it is a pause inside a sentence.
 COMMA_GAP = 0.12
-COMMA_SPLIT_WORDS = 8  # only split a sentence if it is longer than this
-
+CB_MAX_WORDS = 15
+CB_BREAK_WORDS = r"(?:and|but|so|because|with|that|which|when|while|if|or|as)"
 _CB_MODEL = None
+
+
+def split_for_tts(sent: str, max_words: int = CB_MAX_WORDS) -> list[str]:
+    """Split a sentence into pieces short enough for chatterbox to stay clear."""
+    pieces = [p for p in re.split(r"(?<=[,;:])\s+", sent.strip()) if p.strip()]
+    out: list[str] = []
+    for piece in pieces:
+        if len(piece.split()) <= max_words:
+            out.append(piece)
+            continue
+        # Split before conjunctions, keeping the conjunction with the next piece.
+        sub = [s.strip() for s in re.split(rf"\s+(?={CB_BREAK_WORDS}\s)", piece) if s.strip()]
+        for s in sub:
+            if len(s.split()) <= max_words:
+                out.append(s)
+                continue
+            # Last resort: hard split into near-equal halves at word boundaries.
+            words = s.split()
+            n = len(words)
+            half = (n + 1) // 2
+            out.append(" ".join(words[:half]))
+            out.append(" ".join(words[half:]))
+    return [s for s in out if s.strip()]
 
 
 # ---------------------------------------------------------------------------
@@ -239,6 +264,7 @@ def synth_chatterbox(text: str, ref: Path) -> np.ndarray:
     if hit is not None:
         return hit
     model = chatterbox_model()
+    print(f"    synth {len(text.split()):2d}w: {text[:60]}", flush=True)
     wav = model.generate(
         text,
         audio_prompt_path=str(ref),
@@ -339,8 +365,8 @@ def render_scene(official_text: str, scene_id: str, log: list[dict], engine: str
             else:
                 sent_gap = SGAP
 
-            if engine == "chatterbox" and len(sent.split()) > COMMA_SPLIT_WORDS:
-                chunks = [c for c in re.split(r"(?<=,)\s+", sent.strip()) if c.strip()]
+            if engine == "chatterbox":
+                chunks = split_for_tts(sent)
             else:
                 chunks = [sent]
 

@@ -6,8 +6,8 @@
 __pycache__/
 *.pyc
 
-# Lokalt virtuelt miljø til stemmekloning (torch + chatterbox, ~3 GB).
-# Genoprettes med: python -m venv .venv-cb  (se shared/voice/VOICE-CHAIN.md)
+# Det lokale stemme-miljø ligger UDEN FOR repoet (~47.000 filer, se
+# shared/voice/VOICE-CHAIN.md). Denne linje er kun et sikkerhedsnet.
 .venv-cb/
 
 # Rendered narration output. Lyden er en afledt artefact og genskabes med

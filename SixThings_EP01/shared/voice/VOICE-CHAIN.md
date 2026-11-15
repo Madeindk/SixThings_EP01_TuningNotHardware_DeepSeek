@@ -28,7 +28,7 @@ python .\SixThings_EP01\shared\voice\render_narration_tts.py --engine edge ^
     --out .\SixThings_EP01\EP01\audio\andrew_edge
 
 # local zero-shot clone (recommended)
-.\.venv-cb\Scripts\python.exe .\SixThings_EP01\shared\voice\render_narration_tts.py ^
+& C:\Users\Thomas\venvs\sixthings-cb\Scripts\python.exe .\SixThings_EP01\shared\voice\render_narration_tts.py ^
     --engine chatterbox --ref .\voice_refs\andrew_reference.wav ^
     --episode .\SixThings_EP01\EP01 --part 1 --stem sixthings_ep01 ^
     --out .\SixThings_EP01\EP01\audio\andrew
@@ -38,16 +38,18 @@ Add `--only P1-S01` to render a single scene while tuning voice settings.
 
 ## Setup for the clone engine
 
+The clone engine needs its own Python environment: `chatterbox-tts` pins `torch==2.6.0`
+and `numpy<2`, which would break anything else. Put it **outside the repo** — it holds about
+47,000 files, and inside the workspace it makes Cursor report "too many active changes".
+
 ```
-python -m venv .venv-cb
-.\.venv-cb\Scripts\python.exe -m pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
-.\.venv-cb\Scripts\python.exe -m pip install chatterbox-tts
+python -m venv C:\Users\Thomas\venvs\sixthings-cb
+& C:\Users\Thomas\venvs\sixthings-cb\Scripts\python.exe -m pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+& C:\Users\Thomas\venvs\sixthings-cb\Scripts\python.exe -m pip install chatterbox-tts
 ```
 
-`chatterbox-tts` pins `torch==2.6.0` and `numpy<2`, so it must live in its own venv and must
-not be installed into the environment used by anything else. There is no GPU acceleration:
-AMD DirectML on Windows stops at torch 2.4, and the RX 9070 XT is not CUDA. Rendering is CPU
-only, about 5x realtime on a Ryzen 7 9800X3D.
+There is no GPU acceleration: AMD DirectML on Windows stops at torch 2.4, and the
+RX 9070 XT is not CUDA. Rendering is CPU only, about 5x realtime on a Ryzen 7 9800X3D.
 
 ## Chain constants
 
@@ -60,15 +62,20 @@ only, about 5x realtime on a Ryzen 7 9800X3D.
 
 `VOICE-CHAIN` values are mirrored in `voice.lock.json`.
 
-## Long sentences are split at commas (chatterbox only)
+## Long sentences are split (chatterbox only)
 
-Chatterbox slurs the end of long sentences. In scene 1 the 16-word sentence
-*"After a fast roll, the nose swings back a little, as if it changed its mind."* came out
-unclear at 0:07, and the same scene contains a 37-word sentence that was worse. Any sentence
-longer than 8 words is therefore split at commas, each part is synthesized on its own, and
-the parts are joined with a 0.12 s gap. Comma pauses are shorter than sentence pauses
-because they are not sentence boundaries. Edge handles long text cleanly and keeps whole
-sentences.
+Chatterbox slurs the end of long text and can loop indefinitely: a 22-word chunk sat for
+over nine minutes without producing audio, and a 16-word sentence came out unclear at 0:07
+in scene 1. Chatterbox therefore gets short prosody units, split in stages until every piece
+is at most `CB_MAX_WORDS = 15`:
+
+1. split after `,` `;` `:`
+2. if still too long, split before a conjunction (`and`, `but`, `so`, `because`, `with`,
+   `that`, `which`, `when`, `while`, `if`, `or`, `as`)
+3. last resort: hard split at a word boundary
+
+Pieces are joined with a 0.12 s gap — shorter than `SGAP`, because it is a pause inside a
+sentence, not a sentence boundary. Edge handles long text cleanly and keeps whole sentences.
 
 ## Every sentence is cached
 
