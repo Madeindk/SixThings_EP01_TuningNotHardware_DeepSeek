@@ -34,8 +34,8 @@ and a `sixthings_ep01_p1_timing.csv` measured on that render.
 
 - `sixthings_ep01_p1_timing.csv` — measured start, end and duration per scene (from the
   previous audio, see the warning below)
-- `sixthings_ep01_render_summary.json`, `sixthings_ep01_respell_log.md/.json`
-- `phonemes/` — per-sentence records from the previous chain
+- `sixthings_ep01_render_summary.json` and `sixthings_ep01_respell_log.md/.json` in `audio/andrew/`
+  record how this render was produced and which TTS input respells were applied
 
 ## Warning: the timing sheet must be regenerated after a render
 

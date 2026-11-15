@@ -132,10 +132,10 @@ and do not alter the voice. Cut visuals to the audio and the timing sheet. Capti
 graphics use the manuscript wording in `NARRATION.txt` and `blocks/`; the respells are
 TTS-input only.
 
-Do not use `ep2_voice_chain.py` for this series. Do not modify EP4 or Inside the Log EP05+.
+Do not modify EP4 or Inside the Log EP05+.
 
 ## Historical note
 
-`render_narration.py` (Kokoro `bm_daniel`) and `ep2_voice_chain.py` (`am_michael`, speed
-1.188) remain in this folder as provenance for the earlier chains. They are not used for
-6 Things EP01.
+`render_narration.py` remains in this folder because `render_narration_tts.py` imports its
+shared mastering code (constants, respell tables, trim, loudnorm, timing helpers). Its
+Kokoro `bm_daniel` synthesis path is historical and is not used for this episode.

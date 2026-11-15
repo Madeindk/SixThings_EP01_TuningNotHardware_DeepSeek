@@ -75,9 +75,10 @@ feeding a shot-by-shot video generator instead of building the whole episode at 
   Render a proper dimensional 5-inch quad before production.
 - **G2 does not apply.** This series has its own lock. There is no G2 discovery gate and no
   navy/gold palette; do not go looking for G2 files.
-- Superseded and removed: the old ZIP/RAR archives, their checksum manifests, the duplicate
-  `scripts_as_rendered/` copy and the DeepSeek-specific start file. If a document refers to
-  them, ignore that reference.
+- Superseded and removed: the old ZIP/RAR archives and their checksum manifests, the duplicate
+  `scripts_as_rendered/` copy, the DeepSeek-specific start file, the vendored Three.js
+  technique reference, the am_michael provenance files and the stale phoneme records. If a
+  document still refers to any of them, ignore that reference.
 ---
 
 ## Layout
@@ -98,20 +99,26 @@ SixThings_EP01/
     RELEASE_DRAFTS.md          title, description, chapters, tags, thumbnail idea
     PRONUNCIATION.md           spoken forms of technical terms
     NARRATION_AUDIO.md         how the narration was produced
+    scene-index.json           scene start/duration (generated, never hand-edited)
+    README.md                  one-paragraph episode summary
     blocks/P1-S01..S11.txt     the 11 exact scene units
-    audio/                     timing CSV, phoneme and respell logs
+    audio/
+      sixthings_ep01_p1_timing.csv   measured cut points (generated)
+      andrew/                  the narration: 11 scene MP3s + full track + logs
   style/
     STYLE_6THINGS.md           the style lock
     frames/                    approved reference frames
-    src/                       source imagery (placeholders)
+    src/                       source imagery (concept placeholders)
     fonts/                     bundled fonts + OFL licences
+    data/                      synthetic chart data
+    build_frames.py            generator for the frames and data
   shared/
     SERIES_NOTE_SIX_THINGS.md  how the inherited shared files map to this series
     ASSET_MANIFEST.md          rights boundaries
     LOCAL_PRODUCTION.md        production checklist
     brand/                     EasyQuadTune icon
-    voice/                     narrator chain and lock
-    animation-reference/       technique reference only (vendored Three.js, MIT)
+    tools/sync_timing.py       regenerates scene-index and chapters from the audio
+    voice/                     narrator chain, lock and requirements
 voice_refs/
     andrew_reference.wav       reference clip for the voice clone
 ```
@@ -123,6 +130,5 @@ voice_refs/
 - You cannot run Python, ffmpeg or local builds here. When a step needs a command, write the
   command for the human to run, and say plainly that you did not run it.
 - Never claim to have heard audio or watched a render. Listening approval is the human's.
-- `shared/animation-reference/` is vendored third-party code (Three.js, MIT licence). Use it
-  as technique reference only; re-skin everything to the 6 Things tokens and never carry
-  over its palette, fonts or panel style.
+- The style reference frames in `style/frames/` are the visual ground truth for both modes.
+  The images in `style/src/` are concept placeholders, not production assets.

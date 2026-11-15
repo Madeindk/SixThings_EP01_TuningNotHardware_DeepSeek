@@ -1,8 +1,0 @@
-Source paragraphs (episode 2 final v4 build, raw narrator stems before mix): s6_p3.wav, s6_p4.wav, s4_p8.wav
-Joined with 0.70 s gaps (ep2 paragraph gap). No processing.
-
-Inside your quad, each loop compares two things. What you asked for, with your stick. And what the gyro just measured. The gap between them is called the error. Everything the controller does is an attempt to close it.
-
-P looks at the error right now. The bigger the gap, the harder it pushes. Betaflight groups it under tracking. It makes the nose go where you point it. Push too hard, and the quad overshoots, swings back, and oscillates. You often hear it before you see it.
-
-Underneath, a memory chip, or a slot for a micro S D card. That is where the blackbox diary is written. A record of what the gyro felt, and what the motors were told.

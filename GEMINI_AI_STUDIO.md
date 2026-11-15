@@ -53,6 +53,4 @@ https://raw.githubusercontent.com/Madeindk/SixThings_EP01_TuningNotHardware_Deep
 
 ## Om de to filer der ikke er læsestof
 
-- `SixThings_EP01/shared/animation-reference/` er tredjepartskode (Three.js,
-  MIT). Den er kun teknikreference og skal re-skinnes til 6 Things' tokens.
 - `.secrets.baseline` og `.semgrepignore` er sikkerhedsværktøj. Ignorér dem.

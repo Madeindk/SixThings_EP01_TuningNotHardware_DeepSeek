@@ -1,9 +1,17 @@
-# Versions that reproduced the ep2 narrator bit-for-bit (max sample diff 3.05e-5 = 16-bit rounding)
-# on the bot box, 5 Nov 2026. The ORIGINAL ep2 package versions were not recorded.
-kokoro-onnx==0.6.1
-onnxruntime==1.31.1
-phonemizer==3.6.0
-espeakng-loader==0.2.4
-numpy==2.5.4
-soundfile
+# Dependencies for shared/voice/render_narration.py (mastering) and
+# shared/voice/render_narration_tts.py (narration for 6 Things EP01).
+#
+# This environment is enough for --engine edge (Microsoft voice) and for the
+# mastering chain. The --engine chatterbox clone needs its OWN environment,
+# because chatterbox-tts pins torch==2.6.0 and numpy<2 and would break this one:
+#
+#   python -m venv C:\Users\Thomas\venvs\sixthings-cb
+#   & C:\Users\Thomas\venvs\sixthings-cb\Scripts\python.exe -m pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+#   & C:\Users\Thomas\venvs\sixthings-cb\Scripts\python.exe -m pip install chatterbox-tts
+#
+# See VOICE-CHAIN.md.
+
+numpy>=1.26,<2.0
 scipy
+soundfile
+edge-tts>=7.0

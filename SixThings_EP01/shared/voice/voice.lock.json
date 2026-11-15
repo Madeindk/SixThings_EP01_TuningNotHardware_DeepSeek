@@ -69,7 +69,7 @@
       "voice": "am_michael",
       "speed": 1.188,
       "lang": "en-us",
-      "script": "ep2_voice_chain.py",
+      "script": "ep2_voice_chain.py (not bundled in this repo)",
       "note": "Provenance only. Do not retouch EP4 Part 2 or earlier audio."
     }
   }

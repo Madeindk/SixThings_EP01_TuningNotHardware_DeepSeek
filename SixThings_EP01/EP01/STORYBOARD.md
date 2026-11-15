@@ -6,7 +6,7 @@ Style: the 6 THINGS STYLE LOCK (../style/STYLE_6THINGS.md) — NOT the Inside th
 
 NO SOURCES IN THE VIDEO (hard rule): no source names, citations, URLs, document/page/channel titles, screenshots or traced charts of docs/guides/videos, 'source:' or 'according to' captions, footnotes, reference numbers or credit overlays anywhere — not in scene cards, chart titles, lower thirds or the end card. The ledger refs in this storyboard are for fact traceability only. The narration itself names no source.
 
-Reusable assets: shared/animation-reference/b.js (control-loop diagram), d.js (dimensional quad/mixer), a.js (flight controller) are authentic EP2 references to adapt, not finished shots. Thomas's EP2/EP3 reusable motor / FC / ESC / gyro / quad / signal / filter animation sources (Drive archive, already delivered) MAY be reused as geometry/motion technique for motor spin, gyro, filter and quad beats, re-skinned to the 6 Things tokens; record each reused file and hash in project/edit/. Build everything else locally.
+Reusable assets: Thomas's EP2/EP3 reusable motor / FC / ESC / gyro / quad / signal / filter animation sources (Drive archive, already delivered) MAY be reused as geometry/motion technique for motor spin, gyro, filter and quad beats, re-skinned to the 6 Things tokens; record each reused file and hash in project/edit/. Build everything else locally.
 
 EasyQuadTune appears only as the bundled icon on short, restrained [E] cards in S06, S08 and S10 (and the end card); never as a corner bug. No invented UI screenshots of the app, no claims beyond the narration.
 

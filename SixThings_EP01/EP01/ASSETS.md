@@ -4,7 +4,7 @@ BUNDLED: complete manuscript (SCRIPT.md), clean narration (NARRATION.txt), 11 sc
 
 SUPPLIED SEPARATELY (do not commit, do not invent): the narration is generated with shared/voice/render_narration_tts.py in the en-US-AndrewNeural voice — see NARRATION_AUDIO.md and ../shared/voice/VOICE-CHAIN.md. Earlier bm_daniel references describe the superseded chain.
 
-REUSE (optional, geometry/motion technique only, re-skinned to ../style/STYLE_6THINGS.md): Thomas's EP2/EP3 reusable animation sources and renders (motor, FC, ESC, gyro, quad, signal, filter) from the Drive archive already delivered; shared/animation-reference a.js (FC), b.js (control loop), d.js (quad/mixer). Record every reused file, its path and SHA-256 in project/edit/.
+REUSE (optional, geometry/motion technique only, re-skinned to ../style/STYLE_6THINGS.md): Thomas's EP2/EP3 reusable animation sources and renders (motor, FC, ESC, gyro, quad, signal, filter) from the Drive archive already delivered. Record every reused file, its path and SHA-256 in project/edit/.
 
 CREATE_LOCALLY: dimensional 5-inch quad model/renders in the F studio look and its E cut-out, all log-graph charts (setpoint/gyro/I-term/D-term/feedforward/motor traces), step-response charts, spectra and spectrograms, TPA curve, throttle-band colouring, propwash particle wake, heat tint, RC-packet timeline, recap icons, chapter cards, thumbnail. Generate every chart from seeded formulas stored in project/data/ with the formula beside the data.
 
