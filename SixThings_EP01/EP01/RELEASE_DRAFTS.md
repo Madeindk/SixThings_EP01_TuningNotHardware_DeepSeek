@@ -17,6 +17,16 @@ Original script, research and creative direction by Thomas / EasyQuadTune.
 
 Chapters
 0:00 Intro: before you buy the part
+0:50 Setpoint, gyro and one rule
+1:47 Sign 1: propwash on drops and chops
+3:13 Sign 2: hot motors on clean props
+4:36 Sign 3: bounce-back after flips and rolls
+6:00 Sign 4: gyro lags or overshoots setpoint
+7:16 Sign 5: a twitch that follows your sticks
+8:30 Sign 6: shaking only at high throttle
+9:46 When it really is hardware
+11:08 How to fly a log that can answer
+12:09 Recap
 
 Analyse your own Blackbox log: https://easyquadtune.vercel.app
 
@@ -25,7 +35,7 @@ All log charts in this video are illustrative examples, not a specific aircraft'
 EasyQuadTune is not affiliated with Betaflight.
 
 ## Chapters — how they were made
-Derived from the measured narration timing sheet (scene start times in audio/sixthings_ep01_p1_timing.csv, full track 50.870 s). They are valid only if the final edit starts narration at 0:00 with no pre-roll and keeps the 0.70 s scene gaps. If the edit adds an intro, title card or holds, shift every chapter by the actual offset and re-check against the final video before publishing. YouTube requires the first chapter at 0:00 and at least 10 s per chapter (all are well over).
+Derived from the measured narration timing sheet (scene start times in audio/sixthings_ep01_p1_timing.csv, full track 764.894 s). They are valid only if the final edit starts narration at 0:00 with no pre-roll and keeps the 0.70 s scene gaps. If the edit adds an intro, title card or holds, shift every chapter by the actual offset and re-check against the final video before publishing. YouTube requires the first chapter at 0:00 and at least 10 s per chapter (all are well over).
 
 ## Tags
 fpv, betaflight, blackbox, blackbox log, fpv tuning, pid tuning, betaflight tuning, propwash, hot motors, bounce back, bounceback, step response, feedforward, tpa, iterm relax, fpv drone, quadcopter tuning, fpv freestyle, filter tuning, easyquadtune

@@ -3,7 +3,77 @@
     "id": "P1-S01",
     "title": "Before you buy the part",
     "words": 184,
-    "duration_s": 50.87,
+    "duration_s": 49.531,
     "start_s": 0.0
+  },
+  {
+    "id": "P1-S02",
+    "title": "Two lines and one rule",
+    "words": 192,
+    "duration_s": 55.694,
+    "start_s": 50.231
+  },
+  {
+    "id": "P1-S03",
+    "title": "Sign one: wobble in your own wash",
+    "words": 295,
+    "duration_s": 86.123,
+    "start_s": 106.626
+  },
+  {
+    "id": "P1-S04",
+    "title": "Sign two: hot motors on clean props",
+    "words": 279,
+    "duration_s": 82.189,
+    "start_s": 193.449
+  },
+  {
+    "id": "P1-S05",
+    "title": "Sign three: bounce-back",
+    "words": 285,
+    "duration_s": 83.2,
+    "start_s": 276.338
+  },
+  {
+    "id": "P1-S06",
+    "title": "Sign four: gyro late, gyro past",
+    "words": 262,
+    "duration_s": 74.886,
+    "start_s": 360.238
+  },
+  {
+    "id": "P1-S07",
+    "title": "Sign five: a twitch that follows your thumbs",
+    "words": 246,
+    "duration_s": 73.778,
+    "start_s": 435.824
+  },
+  {
+    "id": "P1-S08",
+    "title": "Sign six: shaking that arrives with throttle",
+    "words": 238,
+    "duration_s": 74.894,
+    "start_s": 510.302
+  },
+  {
+    "id": "P1-S09",
+    "title": "When it really is hardware",
+    "words": 283,
+    "duration_s": 81.176,
+    "start_s": 585.897
+  },
+  {
+    "id": "P1-S10",
+    "title": "A log that can answer",
+    "words": 213,
+    "duration_s": 60.033,
+    "start_s": 667.772
+  },
+  {
+    "id": "P1-S11",
+    "title": "The right order",
+    "words": 124,
+    "duration_s": 36.389,
+    "start_s": 728.505
   }
 ]

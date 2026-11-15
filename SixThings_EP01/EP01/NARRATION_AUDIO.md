@@ -12,19 +12,23 @@ loudnorm −16 LUFS / −1.5 dBTP / LRA 11, 48 kHz 24-bit mono WAV + 192 kb/s MP
 Decision dated 15 Nov 2026. The earlier `bm_daniel` decision is superseded; see
 `../shared/voice/VOICE-CHAIN.md`.
 
-## Audio is not stored in this repo
+## Audio in this repo
 
-Rendered speech is a derived artefact and can be regenerated:
+The narration exists as MP3 in `audio/andrew/` — 11 scene files plus `sixthings_ep01_p1_full.mp3`
+(12:45). The 24-bit WAV working files are deliberately excluded: they are 6–7 MB per scene
+and only needed for editing.
+
+Regenerate everything:
 
 ```
-.\.venv-cb\Scripts\python.exe .\SixThings_EP01\shared\voice\render_narration_tts.py ^
+& C:\Users\Thomas\venvs\sixthings-cb\Scripts\python.exe .\SixThings_EP01\shared\voice\render_narration_tts.py ^
     --engine chatterbox --ref .\voice_refs\andrew_reference.wav ^
     --episode .\SixThings_EP01\EP01 --part 1 --stem sixthings_ep01 ^
     --out .\SixThings_EP01\EP01\audio\andrew
 ```
 
 Expected output: `sixthings_ep01_p1_s01` … `_s11` as WAV and MP3, plus `_p1_full` WAV/MP3,
-and a `sixthings_ep01_p1_timing.csv` measured on the new render.
+and a `sixthings_ep01_p1_timing.csv` measured on that render.
 
 ## What is committed
 

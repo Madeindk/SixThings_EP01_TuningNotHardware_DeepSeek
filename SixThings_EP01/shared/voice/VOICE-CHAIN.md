@@ -116,11 +116,14 @@ The chapter labels themselves are editorial text and live in `CHAPTERS` inside
 
 ## Length
 
-The Andrew clone renders shorter than the previous `bm_daniel` audio — scene 1 came out at
-50.9 s against 56.4 s. That is expected: a different engine, different pacing. Picture is cut
-to the measured sheet, so the episode is simply a little shorter than the old draft implied.
-Do not stretch the audio to chase an old number; if a scene feels too brisk, that is an
-editorial decision for Thomas, not a technical fix.
+Measured: 12:45 (764.894 s) for the full track, against 14:35 for the previous `bm_daniel`
+audio — about 13 percent shorter. That is expected: a different engine with different pacing.
+Picture is cut to the measured sheet, so the episode is simply shorter than the old draft
+implied. Do not stretch the audio to chase an old number; if a scene feels too brisk, that is
+an editorial decision for Thomas, not a technical fix.
+
+Measured loudness of the full track: −16.4 LUFS integrated, true peak −1.4 dBTP. Both are
+within about 0.1 dB of the −16.0 / −1.5 target; individual scenes land within ±0.5 LU.
 
 ## Rules for any production agent
 

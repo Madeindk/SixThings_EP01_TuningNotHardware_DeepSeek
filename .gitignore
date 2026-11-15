@@ -10,11 +10,17 @@ __pycache__/
 # shared/voice/VOICE-CHAIN.md). Denne linje er kun et sikkerhedsnet.
 .venv-cb/
 
-# Rendered narration output. Lyden er en afledt artefact og genskabes med
-# shared/voice/render_narration_tts.py; kun kilden og referencen skal i git.
-SixThings_EP01/EP01/audio/andrew/
+# Rendered narration.
+# MP3'erne COMMITTES med vilje: de er smaa (~1 MB pr. scene, ~13 MB i alt) og
+# goer det muligt at lytte til episoden direkte fra GitHub, fx i Google AI
+# Studio. 24-bit WAV'erne er 6-7 MB pr. scene og er arbejdsfiler til klipning,
+# saa de bliver lokale og genskabes med render_narration_tts.py.
+SixThings_EP01/EP01/audio/**/*.wav
 SixThings_EP01/EP01/audio/andrew_edge/
 SixThings_EP01/EP01/audio/review/
+
+# Behold timing og logs, men ikke de tunge lydfiler ovenfor.
+!SixThings_EP01/EP01/audio/andrew/*.mp3
 
 # Midlertidige analysefiler
 _*.py

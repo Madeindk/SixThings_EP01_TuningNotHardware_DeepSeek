@@ -60,16 +60,17 @@ feeding a shot-by-shot video generator instead of building the whole episode at 
   See `SixThings_EP01/shared/voice/VOICE-CHAIN.md`.
   **Any document that still names `bm_daniel` or Kokoro as the narrator is historical**
   (that was the previous Inside the Log chain) — do not follow it for this episode.
-- **Audio is not in this repo.** Rendered speech is a derived artefact and is regenerated
-  with `SixThings_EP01/shared/voice/render_narration_tts.py`. The timing CSV is the
-  contract for cutting picture, not the audio files.
+- **Audio is in this repo — as MP3 only.** The 11 scene MP3s and the full track live in
+  `SixThings_EP01/EP01/audio/andrew/`, so the episode can be listened to straight from
+  GitHub (in Google AI Studio or by downloading). The 24-bit WAV working files are local
+  only and are regenerated with `SixThings_EP01/shared/voice/render_narration_tts.py`.
 - **Timing is generated, not hand-written.** `EP01/audio/sixthings_ep01_p1_timing.csv` comes
   from the renderer, and `EP01/scene-index.json` plus the chapter list in
   `EP01/RELEASE_DRAFTS.md` are derived from it by
   `SixThings_EP01/shared/tools/sync_timing.py`. Never edit those by hand.
-- **The episode is shorter than the old draft implied.** The Andrew voice paces faster than
-  the previous `bm_daniel` audio. Cut picture to the measured sheet; do not stretch audio to
-  chase an old runtime.
+- **Measured runtime is 12:45 (764.894 s), not 14:35.** The Andrew voice paces faster than
+  the previous `bm_daniel` audio, so the episode is about 13 percent shorter than the old
+  draft numbers. Cut picture to the measured sheet; do not stretch audio to chase a runtime.
 - **The quad images in `style/src/` are concept placeholders**, not the production asset.
   Render a proper dimensional 5-inch quad before production.
 - **G2 does not apply.** This series has its own lock. There is no G2 discovery gate and no

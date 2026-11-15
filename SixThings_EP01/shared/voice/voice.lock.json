@@ -56,7 +56,7 @@
   "timing_sync": "shared/tools/sync_timing.py",
   "timing_policy": "The timing CSV written by the renderer is the single source of truth. scene-index.json and the chapter list in RELEASE_DRAFTS.md are derived from it and never hand-edited. Run sync_timing.py after every render.",
   "lexicon": "shared/voice/lexicon.json",
-  "length_note": "The Andrew voice paces faster than the previous bm_daniel audio, so the episode is shorter than the old draft implied (scene 1: 56.4 s before, about 51 s now). Picture is cut to the measured sheet; audio is never stretched to chase an old runtime.",
+  "length_note": "Measured full track is 12:45 (764.894 s), about 13 percent shorter than the previous bm_daniel audio at 14:35 (875.793 s), because the Andrew voice paces faster. Picture is cut to the measured sheet; audio is never stretched to chase an old runtime. Full-track loudness is -16.4 LUFS integrated with a -1.4 dBTP true peak.",
   "historical": {
     "inside_the_log_ep5_plus": {
       "voice": "bm_daniel",
