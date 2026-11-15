@@ -63,6 +63,13 @@ feeding a shot-by-shot video generator instead of building the whole episode at 
 - **Audio is not in this repo.** Rendered speech is a derived artefact and is regenerated
   with `SixThings_EP01/shared/voice/render_narration_tts.py`. The timing CSV is the
   contract for cutting picture, not the audio files.
+- **Timing is generated, not hand-written.** `EP01/audio/sixthings_ep01_p1_timing.csv` comes
+  from the renderer, and `EP01/scene-index.json` plus the chapter list in
+  `EP01/RELEASE_DRAFTS.md` are derived from it by
+  `SixThings_EP01/shared/tools/sync_timing.py`. Never edit those by hand.
+- **The episode is shorter than the old draft implied.** The Andrew voice paces faster than
+  the previous `bm_daniel` audio. Cut picture to the measured sheet; do not stretch audio to
+  chase an old runtime.
 - **The quad images in `style/src/` are concept placeholders**, not the production asset.
   Render a proper dimensional 5-inch quad before production.
 - **G2 does not apply.** This series has its own lock. There is no G2 discovery gate and no
@@ -70,7 +77,6 @@ feeding a shot-by-shot video generator instead of building the whole episode at 
 - Superseded and removed: the old ZIP/RAR archives, their checksum manifests, the duplicate
   `scripts_as_rendered/` copy and the DeepSeek-specific start file. If a document refers to
   them, ignore that reference.
-
 ---
 
 ## Layout

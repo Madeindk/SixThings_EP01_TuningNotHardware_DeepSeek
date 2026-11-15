@@ -25,9 +25,9 @@
   },
   "input": "text after the TEXT_RESPELLS and NORM tables. Neither engine takes phonemes, so the Kokoro phoneme fixes (Betaflight, Fresnel, lexicon) are applied as text respells instead.",
   "sentence_handling": {
-    "comma_split_words": 8,
+    "max_words": 15,
     "comma_gap_s": 0.12,
-    "why": "Chatterbox slurs the end of long sentences. In scene 1 the 16-word sentence with two commas came out unclear at 0:07. Sentences longer than 8 words are split at commas, each part is synthesized separately, and the parts are joined with a 0.12 s gap (shorter than SGAP because it is a comma, not a full stop). Edge keeps whole sentences."
+    "why": "Chatterbox slurs the end of long text and once looped for over nine minutes on a 22-word chunk. A sentence at or below 15 words is therefore passed through whole, keeping its own commas and rhythm. A longer sentence is split at , ; : then before conjunctions then at a word boundary, and the pieces are merged back greedily so no tiny fragment is left alone. An earlier version split at every comma and audibly mangled 'A motor, a bearing, maybe the flight controller itself.' into three fragments; that is why the passthrough rule exists."
   },
   "caching": {
     "path": "%USERPROFILE%\\.cache\\sixthings_tts",
@@ -53,13 +53,10 @@
     "note": "Same two-pass ffmpeg loudnorm as the previous chain. Delivery is 48 kHz 24-bit WAV + 192 kb/s MP3."
   },
   "renderer": "shared/voice/render_narration_tts.py",
+  "timing_sync": "shared/tools/sync_timing.py",
+  "timing_policy": "The timing CSV written by the renderer is the single source of truth. scene-index.json and the chapter list in RELEASE_DRAFTS.md are derived from it and never hand-edited. Run sync_timing.py after every render.",
   "lexicon": "shared/voice/lexicon.json",
-  "known_delta": {
-    "issue": "The Andrew clone renders shorter than the previous bm_daniel audio.",
-    "measurement": "Scene 1: 48.40 s (chatterbox) and 56.63 s (edge) against 56.38 s for the original v2 audio.",
-    "consequence": "audio/sixthings_ep01_p1_timing.csv was measured on the old audio. If the chatterbox render is used, the timing sheet must be re-measured with the renderer's output before cutting picture, or picture and audio will drift by roughly 14 percent.",
-    "status": "OPEN — Thomas must choose between re-measuring the timing sheet and keeping the audio length close to the original."
-  },
+  "length_note": "The Andrew voice paces faster than the previous bm_daniel audio, so the episode is shorter than the old draft implied (scene 1: 56.4 s before, about 51 s now). Picture is cut to the measured sheet; audio is never stretched to chase an old runtime.",
   "historical": {
     "inside_the_log_ep5_plus": {
       "voice": "bm_daniel",

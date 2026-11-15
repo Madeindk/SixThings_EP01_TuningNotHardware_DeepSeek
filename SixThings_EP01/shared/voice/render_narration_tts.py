@@ -117,40 +117,75 @@ TTS_RESPELLS = [
 MAX_CONCURRENT = 6
 RETRIES = 4
 
+# Every chunk is synthesized in isolation, so its edges are hard cuts: the
+# waveform starts and stops at whatever amplitude the model left, and a
+# sentence-final tail can carry a low voiced hum above the trim threshold. When
+# such edges meet digital silence they produce an audible seam — a click or a
+# thud before the next word. Short raised-cosine fades at both edges remove the
+# discontinuity without touching the articulation inside the chunk.
+FADE_IN_MS = 10
+FADE_OUT_MS = 35
+
 # Chatterbox mumbles or loops towards the end of long text: a 22-word chunk
 # stalled for over nine minutes without producing audio, and a 16-word sentence
-# came out unclear at 0:07 in scene 1. Chatterbox therefore gets short prosody
-# units. Splitting is done in stages, because splitting a long sentence at its
-# commas still left a 22-word piece:
-#   1. split at , ; : then 2. split before a conjunction then 3. hard split.
-# COMMA_GAP is shorter than SGAP because it is a pause inside a sentence.
+# came out unclear at 0:07 in scene 1. Chatterbox therefore needs short prosody
+# units, but splitting too eagerly is its own defect: breaking a 9-word sentence
+# into "A motor," / "a bearing," / "maybe the flight controller itself." with
+# gaps between the pieces sounds wrong. So a sentence is left COMPLETELY WHOLE
+# unless it exceeds CB_MAX_WORDS, and only then is it split, greedily, at
+# commas and then conjunctions.
 COMMA_GAP = 0.12
 CB_MAX_WORDS = 15
 CB_BREAK_WORDS = r"(?:and|but|so|because|with|that|which|when|while|if|or|as)"
 _CB_MODEL = None
 
 
+def _hard_split(text: str, max_words: int) -> list[str]:
+    """Split at word boundaries into roughly equal parts of at most max_words."""
+    words = text.split()
+    if len(words) <= max_words:
+        return [text]
+    n_parts = (len(words) + max_words - 1) // max_words
+    size = (len(words) + n_parts - 1) // n_parts
+    return [" ".join(words[i:i + size]) for i in range(0, len(words), size)]
+
+
 def split_for_tts(sent: str, max_words: int = CB_MAX_WORDS) -> list[str]:
-    """Split a sentence into pieces short enough for chatterbox to stay clear."""
-    pieces = [p for p in re.split(r"(?<=[,;:])\s+", sent.strip()) if p.strip()]
-    out: list[str] = []
-    for piece in pieces:
-        if len(piece.split()) <= max_words:
-            out.append(piece)
+    """Split a sentence only if it is too long for chatterbox, then greedily.
+
+    A sentence at or below max_words is returned untouched, so short natural
+    sentences keep their original rhythm and commas.
+    """
+    sent = sent.strip()
+    if len(sent.split()) <= max_words:
+        return [sent]
+
+    # Candidates are the natural break points: after , ; : and before a conjunction.
+    parts = [p for p in re.split(r"(?<=[,;:])\s+", sent) if p.strip()]
+
+    # Anything still too long is split further before conjunctions / hard.
+    expanded: list[str] = []
+    for p in parts:
+        if len(p.split()) <= max_words:
+            expanded.append(p)
             continue
-        # Split before conjunctions, keeping the conjunction with the next piece.
-        sub = [s.strip() for s in re.split(rf"\s+(?={CB_BREAK_WORDS}\s)", piece) if s.strip()]
-        for s in sub:
-            if len(s.split()) <= max_words:
-                out.append(s)
-                continue
-            # Last resort: hard split into near-equal halves at word boundaries.
-            words = s.split()
-            n = len(words)
-            half = (n + 1) // 2
-            out.append(" ".join(words[:half]))
-            out.append(" ".join(words[half:]))
-    return [s for s in out if s.strip()]
+        subs = [s.strip() for s in re.split(rf"\s+(?={CB_BREAK_WORDS}\s)", p) if s.strip()]
+        for s in subs:
+            expanded.extend(_hard_split(s, max_words))
+
+    # Merge neighbours greedily so we do not create tiny fragments.
+    out: list[str] = []
+    cur = ""
+    for p in expanded:
+        candidate = f"{cur} {p}".strip() if cur else p
+        if cur and len(candidate.split()) > max_words:
+            out.append(cur)
+            cur = p
+        else:
+            cur = candidate
+    if cur:
+        out.append(cur)
+    return out or [sent]
 
 
 # ---------------------------------------------------------------------------
@@ -346,6 +381,18 @@ def synth_sentences(texts: list[str], engine: str, ref: Path | None) -> list[np.
         return asyncio.run(edge_all(texts, Path(td)))
 
 
+def apply_fades(a: np.ndarray) -> np.ndarray:
+    """Raised-cosine fade at both edges so chunk seams cannot click."""
+    a = a.astype(np.float32).copy()
+    n_in = min(int(NATIVE_SR * FADE_IN_MS / 1000), len(a) // 2)
+    n_out = min(int(NATIVE_SR * FADE_OUT_MS / 1000), len(a) // 2)
+    if n_in > 0:
+        a[:n_in] *= 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, n_in, dtype=np.float32))
+    if n_out > 0:
+        a[-n_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, n_out, dtype=np.float32))
+    return a
+
+
 def render_scene(official_text: str, scene_id: str, log: list[dict], engine: str,
                  ref: Path | None) -> tuple[np.ndarray, int]:
     spoken_block = norm(apply_respells(official_text, scene_id, log))
@@ -381,7 +428,7 @@ def render_scene(official_text: str, scene_id: str, log: list[dict], engine: str
 
     parts: list[np.ndarray] = []
     for a, (_text, gap_after) in zip(arrays, items):
-        parts.append(a)
+        parts.append(apply_fades(a))
         if gap_after > 0:
             parts.append(np.zeros(int(NATIVE_SR * gap_after), np.float32))
     return np.concatenate(parts), n_sentences

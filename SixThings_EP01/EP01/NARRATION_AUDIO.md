@@ -33,15 +33,23 @@ and a `sixthings_ep01_p1_timing.csv` measured on the new render.
 - `sixthings_ep01_render_summary.json`, `sixthings_ep01_respell_log.md/.json`
 - `phonemes/` — per-sentence records from the previous chain
 
-## Warning: the timing sheet is stale
+## Warning: the timing sheet must be regenerated after a render
 
-`audio/sixthings_ep01_p1_timing.csv` was measured on the previous `bm_daniel` audio (full
-track 14:35.793). The Andrew clone renders shorter — scene 1 is 48.40 s against 56.38 s,
-about 14 percent — so picture cut to this sheet will drift against a chatterbox render.
-The Edge render is very close (56.63 s vs 56.38 s) and can use the sheet almost as-is.
+`audio/sixthings_ep01_p1_timing.csv` is written by the renderer, so it always describes the
+audio that actually exists. It is committed for the current render.
 
-This is unresolved. Until it is settled, treat the timing sheet as a shape-of-the-episode
-reference, not as final cut points.
+Two files are derived from it and must not be edited by hand — `scene-index.json` and the
+YouTube chapter list in `RELEASE_DRAFTS.md`. After any render, run:
+
+```
+python .\SixThings_EP01\shared\tools\sync_timing.py ^
+    --timing .\SixThings_EP01\EP01\audio\andrew\sixthings_ep01_p1_timing.csv ^
+    --episode .\SixThings_EP01\EP01
+```
+
+Picture is cut to this sheet. The Andrew clone paces faster than the previous `bm_daniel`
+audio, so the episode is a little shorter than the old draft numbers suggested. Do not
+stretch the voice to chase an old runtime.
 
 ## The 11 scene units
 
