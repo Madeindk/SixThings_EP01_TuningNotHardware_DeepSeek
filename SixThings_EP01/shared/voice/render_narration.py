@@ -345,7 +345,11 @@ def synth_block(official_text: str, models: Path, phone_subs: list[tuple[str, st
 
 
 def loudnorm_wav(a: np.ndarray, sr: int, out_wav: Path, subtype: str = "PCM_24") -> dict:
-    tmp = Path(tempfile.mkstemp(suffix=".wav")[1])
+    # mkstemp returns an open descriptor; close it or Windows refuses the unlink
+    # in the finally block (permission denied on a file still open in-process).
+    fd, tmp_name = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    tmp = Path(tmp_name)
     try:
         sf.write(tmp, a, sr)
         codec = "pcm_s24le" if subtype == "PCM_24" else "pcm_s16le"

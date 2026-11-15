@@ -1,3 +1,22 @@
 # Arkiverede udgivelsespakker — kun til lokal distribution, ikke i git.
 *.zip
 *.rar
+
+# Python
+__pycache__/
+*.pyc
+
+# Lokalt virtuelt miljø til stemmekloning (torch + chatterbox, ~3 GB).
+# Genoprettes med: python -m venv .venv-cb  (se shared/voice/VOICE-CHAIN.md)
+.venv-cb/
+
+# Rendered narration output. Lyden er en afledt artefact og genskabes med
+# shared/voice/render_narration_tts.py; kun kilden og referencen skal i git.
+SixThings_EP01/EP01/audio/andrew/
+SixThings_EP01/EP01/audio/andrew_edge/
+SixThings_EP01/EP01/audio/review/
+
+# Midlertidige analysefiler
+_*.py
+_*.wav
+_*.mp3
