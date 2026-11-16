@@ -17,6 +17,7 @@ import {
   hudPanel, legend, axis, series, markerLine, panelGradient, brackets, vignette, rng,
 } from './lib6.js';
 import { createQuad, createTree } from './quad6.js';
+import { flightState } from './flight6.js';
 
 /* ------------------------------------------------------------------ */
 /* setup                                                              */
@@ -29,7 +30,7 @@ renderer.setPixelRatio(1);
 renderer.setSize(W, H, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
+renderer.toneMappingExposure = 1.35;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -41,21 +42,33 @@ scene.add(tree);
 const camera = new THREE.PerspectiveCamera(30, W / H, 5, 6000);
 
 /* camera presets, in the manner of the reference shots */
-function setCamera(preset, t, u) {
+function setCamera(preset, t, u, fs) {
   const drift = ease.sine((Math.sin(t * 0.22) + 1) / 2);
   const P = {
-    hero: [[-150, 210, 780], [0, 20, 0]],
-    wide: [[-40, 300, 900], [0, 10, 0]],
-    drop: [[-120, 330, 880], [-40, -30, 0]],
-    macro: [[230, 120, 340], [120, 30, 60]],
-    low: [[80, 90, 620], [0, 30, 0]],
-    top: [[120, 520, 420], [0, 0, 0]],
-    dim: [[-300, 330, 1050], [140, 20, 0]],
+    hero: [[-70, 108, 400], [78, 20, 0]],
+    wide: [[16, 118, 420], [86, 10, 0]],
+    drop: [[-52, 180, 450], [70, -46, 0]],
+    macro: [[54, 44, 122], [44, 26, 14]],
+    low: [[56, 36, 340], [76, 18, 0]],
+    top: [[78, 250, 220], [46, 0, 0]],
+    dim: [[-110, 140, 470], [122, 14, 0]],
+    three: [[46, 88, 410], [74, 8, 0]],
   }[preset] || P.hero;
   const [pos, look] = P;
-  camera.position.set(pos[0] + drift * 26, pos[1] + Math.sin(t * 0.7) * 8, pos[2]);
-  camera.lookAt(look[0], look[1], look[2]);
-  if (preset === 'macro') camera.position.set(230 - u * 40, 118, 340 - u * 30);
+
+  // The camera follows the manoeuvre so a drop, a climb or a roll stays framed.
+  // Follow is damped: the quad moves inside the frame, the frame does not chase
+  // it exactly, which is what makes the motion legible.
+  const fy = fs ? fs.pos[1] : 0;
+  const fx = fs ? fs.pos[0] : 0;
+
+  camera.position.set(pos[0] + drift * 22 + fx * 0.25, pos[1] + Math.sin(t * 0.62) * 7 + fy * 0.55, pos[2]);
+  camera.lookAt(look[0] + fx * 0.45, look[1] + fy * 0.75, look[2]);
+
+  if (preset === 'macro') {
+    camera.position.set(54 - u * 8, 43 - u * 3, 122 - u * 8);
+    camera.lookAt(44, 26 - u * 2, 14);
+  }
 }
 
 /* one-off render of the quad with alpha, used as the E-mode cut-out */
@@ -770,17 +783,37 @@ export async function renderFrame(spec) {
     return true;
   }
 
-  /* F mode: 3D first, then the 2D layer on top */
-  setCamera(b.cam, tLocal, u);
-  Q.rotation.set(Math.sin(tLocal * 1.1) * 0.03, 0, Math.sin(tLocal * 1.4) * 0.012);
-  Q.position.y = b.cam === 'drop' ? lerp(120, 0, ease.out(clamp(tLocal / 2.4))) : 0;
+  /* F mode: 3D first, then the 2D layer on top. The quad plays the manoeuvre
+   * this beat is about, so the motion and the narration say the same thing. */
+  const fs = flightState(sceneId, beatIndex, u);
+  setCamera(b.cam, tLocal, u, fs);
+
+  Q.position.set(fs.pos[0], fs.pos[1], fs.pos[2]);
+  Q.rotation.set(fs.rot[0], fs.rot[2], fs.rot[1]);
   tree.visible = b.cam === 'drop';
 
-  const spin = 18 + 26 * (0.4 + 0.6 * Math.sin(tLocal * 0.7) * 0.5 + 0.5);
+  // prop spin follows throttle; the modelled blades fade into the blur disc as RPM
+  // rises, which is what makes the spin read as rotation
+  const rpm = clamp(fs.throttle * 1.35, 0, 1);
+  const blend = ease.io(clamp((rpm - 0.10) / 0.45));
   motors.forEach((m, i) => {
-    m.prop.rotation.z = m.prop.userData.dir * tLocal * spin;
-    m.glow.material.opacity = 0.10 + 0.16 * (0.5 + 0.5 * Math.sin(tLocal * 1.3 + i));
+    const local = clamp(rpm * (1 + 0.04 * Math.sin(i * 2.1)), 0, 1);
+    m.blades.rotation.y = m.dir * tLocal * (26 + 78 * local);
+    m.blades.traverse((o) => {
+      if (o.material && o.material.opacity !== undefined) o.material.opacity = 1 - blend;
+      if (o.material) o.material.transparent = blend > 0.01;
+    });
+    m.disc.material.opacity = 0.98 * blend;
+    m.disc.rotation.z = m.dir * tLocal * 6;
+    m.glow.material.opacity = 0.05 + 0.22 * local;
+    m.glow.scale.setScalar(0.8 + 0.5 * local);
   });
+
+  // bell heat: desaturated warm shimmer only, never the accent
+  materials.heatMat.emissiveIntensity = fs.heat * 0.55;
+  materials.bellMat.color.setHex(fs.heat > 0.02 ? 0x9d9084 : 0x9aa5b0);
+  materials.bellMat.emissive.setHex(0x5a2a10);
+  materials.bellMat.emissiveIntensity = fs.heat * 0.30;
 
   renderer.render(scene, camera);
 
@@ -847,4 +880,37 @@ export async function renderFrame(spec) {
 }
 
 window.renderFrame = renderFrame;
+window.__scene = scene;
+window.__quad = Q;
+/* Tuning hooks: exposure and a light multiplier, so brightness can be measured
+ * instead of judged by eye. */
+window.__setExposure = (e) => { renderer.toneMappingExposure = e; };
+window.__setLightMult = (m) => {
+  scene.traverse((o) => {
+    if (o.isDirectionalLight || o.isHemisphereLight || o.isAmbientLight || o.isSpotLight) {
+      if (o.userData.base === undefined) o.userData.base = o.intensity;
+      o.intensity = o.userData.base * m;
+    }
+  });
+};
+window.__setEnvIntensity = (v) => {
+  Q.traverse((o) => {
+    if (o.material && o.material.envMapIntensity !== undefined) o.material.envMapIntensity = v;
+  });
+};
+/* Measurement hooks for the render driver's diagnostics. */
+window.__diag = () => {
+  const box = new THREE.Box3().setFromObject(Q);
+  const size = box.getSize(new THREE.Vector3());
+  const centre = box.getCenter(new THREE.Vector3());
+  const p = centre.clone().project(camera);
+  return {
+    quad: { w: +size.x.toFixed(1), h: +size.y.toFixed(1), d: +size.z.toFixed(1) },
+    centre: { x: +centre.x.toFixed(1), y: +centre.y.toFixed(1), z: +centre.z.toFixed(1) },
+    cam: { x: +camera.position.x.toFixed(1), y: +camera.position.y.toFixed(1), z: +camera.position.z.toFixed(1) },
+    dist: +camera.position.distanceTo(centre).toFixed(1),
+    screen: { x: Math.round((p.x * 0.5 + 0.5) * W), y: Math.round((-p.y * 0.5 + 0.5) * H) },
+    fov: camera.fov,
+  };
+};
 window.__ready = true;

@@ -49,3 +49,8 @@ build/clips6/
 build/out6/
 build/concat6.txt
 build/layout-issues.txt
+
+# Reference-billede brugt til at maale quad'en (Wikimedia Commons, kun lokalt).
+build/ref/
+build/preview6/
+build/frames6/

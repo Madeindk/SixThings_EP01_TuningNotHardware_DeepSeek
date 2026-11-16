@@ -298,9 +298,10 @@ export function brackets(g, alpha = 0.55) {
 
 /* Vignette, so the studio floor falls off to void. */
 export function vignette(g) {
-  const v = g.createRadialGradient(W * 0.42, H * 0.42, H * 0.35, W * 0.5, H * 0.5, W * 0.78);
+  const v = g.createRadialGradient(W * 0.42, H * 0.42, H * 0.52, W * 0.5, H * 0.5, W * 0.92);
   v.addColorStop(0, 'rgba(11,14,18,0)');
-  v.addColorStop(1, 'rgba(11,14,18,0.85)');
+  v.addColorStop(0.65, 'rgba(11,14,18,0.22)');
+  v.addColorStop(1, 'rgba(11,14,18,0.72)');
   g.fillStyle = v;
   g.fillRect(0, 0, W, H);
 }
