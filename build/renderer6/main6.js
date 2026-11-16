@@ -42,6 +42,15 @@ scene.add(tree);
 
 const camera = new THREE.PerspectiveCamera(30, W / H, 5, 6000);
 
+/* A fill light that rides with the camera. Without it a macro shot of a dark
+ * airframe in a dark studio reads as a silhouette; a studio photographer would
+ * use exactly this. It is off for every wide preset, so the wide shots keep the
+ * one-key-light look the style lock asks for. */
+const camFill = new THREE.DirectionalLight(0xBcd0DE, 0);
+camera.add(camFill);
+camFill.position.set(0.4, 0.6, 1);
+scene.add(camera);
+
 /* Camera presets.
  *
  * The base orbit is the reference scene's: a 30-degree lens at about 900 from the
@@ -56,13 +65,16 @@ const camera = new THREE.PerspectiveCamera(30, W / H, 5, 6000);
 function setCamera(preset, t, u, fs) {
   const drift = ease.sine((Math.sin(t * 0.22) + 1) / 2);
 
+  camFill.intensity = preset === "macro" ? 2.6 : 0;
+
   if (preset === "macro") {
-    // The front-left motor sits at (+79.2, +79.2) because ARM/√2 = 79.2, so the
-    // camera looks AT that motor rather than at the frame centre. The aim point is
-    // then nudged along the camera's right axis to place the subject in the left
-    // half of the frame: aiming right of the subject moves the subject left.
+    /* Three-quarter view of one motor so the bell, the washer and the prop nut all
+     * read. The front-left motor sits at (+79.2, +79.2) because ARM/√2 = 79.2, so
+     * the camera looks AT that motor rather than at the frame centre, then the aim
+     * point is nudged along the camera's right axis to place it in the left half of
+     * the frame: aiming right of the subject moves the subject left. */
     const mx = 79.2, mz = 79.2;
-    const camPos = new THREE.Vector3(mx + 40 - u * 6, 30 - u * 4, mz + 42 - u * 5);
+    const camPos = new THREE.Vector3(mx + 84 - u * 10, 66 - u * 6, mz + 90 - u * 9);
     const target = new THREE.Vector3(mx, 20, mz);
     const fwd = target.clone().sub(camPos).normalize();
     const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
@@ -830,8 +842,14 @@ export async function renderFrame(spec) {
     const local = clamp(rpm * (1 + 0.04 * Math.sin(i * 2.1)), 0, 1);
     m.prop.visible = !b.noProp;
     m.glow.visible = !b.noProp;
-    m.prop.rotation.z = m.dir * tLocal * (22 + 70 * local);
-    m.prop.material.opacity = 0.55 + 0.45 * local;
+    const spin = m.dir * tLocal * (22 + 70 * local);
+    m.prop.rotation.z = spin;
+    m.prop.material.opacity = 0.30 + 0.60 * local;
+    // the modelled blades sit under the blur: visible when slow, lost when fast
+    m.bladePivot.rotation.y = spin;
+    m.bladePivot.traverse((o) => {
+      if (o.isMesh) { o.visible = !b.noProp; }
+    });
     m.glow.material.opacity = 0.06 + 0.20 * local;
     m.glow.scale.setScalar(0.85 + 0.45 * local);
     // the ring glows brighter with motor effort, as it does in the reference

@@ -81,8 +81,34 @@ function glowTexture() {
 }
 
 /* ------------------------------------------------------------------ */
-/* build                                                              */
+/* prop: modelled blades, spinner nut and blur disc, all together      */
 /* ------------------------------------------------------------------ */
+/* The reference scene in EP4 (p4_3d_ani/src/a06a.js) draws a propeller as three
+ * things at once: extruded blades with a curved profile, a spinner over the hub,
+ * and a translucent blur disc for RPM. Doing all three is what makes a prop read
+ * as a real prop that is spinning, rather than as a flat disc. */
+function propBladeShape() {
+  const s = new THREE.Shape();
+  s.moveTo(-0.9, 4.5);
+  s.quadraticCurveTo(-5.4, 14, -4.2, 32);
+  s.quadraticCurveTo(-3.2, 44, -1.6, 52);
+  s.quadraticCurveTo(-0.6, 58, 0.2, 57);
+  s.quadraticCurveTo(3.0, 52, 3.6, 40);
+  s.quadraticCurveTo(4.4, 22, 2.2, 10);
+  s.quadraticCurveTo(1.6, 5.5, -0.9, 4.5);
+  return s;
+}
+
+function shapeMesh(shape, depth, mat, bevel = 1.2) {
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth, bevelEnabled: true, bevelThickness: bevel * 0.5,
+    bevelSize: bevel * 0.5, bevelSegments: 3, curveSegments: 24,
+  });
+  geo.translate(0, 0, -depth / 2);
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true;
+  return m;
+}
 export function createQuad(renderer) {
   const scene = new THREE.Scene();
 
@@ -241,51 +267,113 @@ export function createQuad(renderer) {
 
   /* --- battery on the deck: real GNB 1100 mAh 4S envelope --- */
   {
-    // measured 87.4 x 32.9 x 48.8 mm including the leads; the pack body is
-    // about 78 x 34 x 30, with the balance and XT60 leads at the front
-    const pack = new THREE.Mesh(new THREE.BoxGeometry(34, 30, 78), plastic);
-    pack.position.set(0, 46, 6);
+    /* The pack must look like a LiPo: a rounded brick with a wrapped label, one
+     * XT60 and one balance lead at the FRONT, strapped down. The previous version
+     * was a plain black box with two antennas passing through it, which read as a
+     * backpack rather than as a battery. */
+    const packGeo = new THREE.BoxGeometry(34, 28, 78, 2, 2, 2);
+    const pack = new THREE.Mesh(packGeo, plastic);
+    pack.position.set(0, 45, 4);
     pack.castShadow = true;
     Q.add(pack);
-    // a printed shrink-wrap band, so it reads as a LiPo and not as a black brick
-    const band = new THREE.Mesh(new THREE.BoxGeometry(35, 12, 34), new THREE.MeshStandardMaterial({ color: 0x1f3a4a, roughness: 0.8 }));
-    band.position.set(0, 46, 6);
-    Q.add(band);
-    for (const z of [-16, 24]) {
-      const strap = new THREE.Mesh(new THREE.BoxGeometry(38, 2.2, 9), rubber);
-      strap.position.set(0, 46, z);
+
+    // shrink-wrap label, slightly inset so the black pack shows at the edges
+    const label = new THREE.Mesh(new THREE.BoxGeometry(34.6, 20, 62), new THREE.MeshStandardMaterial({
+      color: 0x1d3d52, roughness: 0.72, metalness: 0.05,
+    }));
+    label.position.set(0, 45, 4);
+    Q.add(label);
+    const labelDot = new THREE.Mesh(new THREE.BoxGeometry(35.2, 9, 16), new THREE.MeshStandardMaterial({
+      color: 0x8f2d24, roughness: 0.7,
+    }));
+    labelDot.position.set(0, 52, 4);
+    Q.add(labelDot);
+
+    // straps wrap the pack and the deck
+    for (const z of [-16, 25]) {
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(37, 2.4, 10), rubber);
+      strap.position.set(0, 45, z);
       Q.add(strap);
     }
-    for (let k = 0; k < 4; k++) {
-      const lead = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 14, 6),
-        new THREE.MeshStandardMaterial({ color: k % 2 ? 0x111111 : 0xaa2222, roughness: 0.8 }));
-      lead.position.set(-4 + k * 2.6, 50, 48);
-      lead.rotation.x = 1.1;
+    // grip pad under the straps
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(30, 0.8, 4), rubber);
+    grip.position.set(0, 31.4, 4);
+    Q.add(grip);
+
+    /* Leads come out of the FRONT of the pack and run down to the XT60 on the
+     * ESC. Nothing passes through the battery. */
+    const xt60Body = new THREE.Mesh(new THREE.BoxGeometry(11, 7.5, 9), plastic);
+    xt60Body.position.set(0, 34, 50);
+    Q.add(xt60Body);
+    const xt60Top = new THREE.Mesh(new THREE.BoxGeometry(9, 1.6, 7), new THREE.MeshStandardMaterial({
+      color: 0xd9b23a, metalness: 0.8, roughness: 0.35,
+    }));
+    xt60Top.position.set(0, 38, 50);
+    Q.add(xt60Top);
+    for (const [dx, col] of [[-2.4, 0xaa2222], [2.4, 0x1a1a1a]]) {
+      const lead = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 16, 8),
+        new THREE.MeshStandardMaterial({ color: col, roughness: 0.82 }));
+      lead.rotation.x = 1.15;
+      lead.position.set(dx, 38, 40);
       Q.add(lead);
     }
+    // balance lead: a thin ribbon with a small plug
+    const bal = new THREE.Mesh(new THREE.BoxGeometry(7, 0.7, 15),
+      new THREE.MeshStandardMaterial({ color: 0x6f6a60, roughness: 0.9 }));
+    bal.position.set(-13, 31.6, 34);
+    bal.rotation.x = 0.2;
+    Q.add(bal);
+    const balPlug = new THREE.Mesh(new THREE.BoxGeometry(8, 2.6, 5), plastic);
+    balPlug.position.set(-13, 32.4, 41);
+    Q.add(balPlug);
   }
 
-  /* --- antennas at the rear --- */
+  /* --- antennas: mounted on the REAR of the bottom plate, behind the pack --- */
   {
-    for (const [ax, rot] of [[-11, 0.30], [11, -0.22]]) {
-      const a = new THREE.Group();
-      const base = new THREE.Mesh(new THREE.BoxGeometry(9, 4.5, 9), plastic);
-      base.position.y = 2.2; a.add(base);
-      const stalk = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.6, 14, 10), plastic);
-      stalk.position.y = 11; a.add(stalk);
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 48, 8), plastic);
-      stem.position.y = 40; a.add(stem);
-      const tip = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 15, 12), plastic);
-      tip.position.y = 60; a.add(tip);
-      a.position.set(ax, 52, 34);
-      a.rotation.x = rot;
-      Q.add(a);
+    /* Previously these rose straight out of the battery, which is wrong: antennas
+     * mount to the frame, not to the pack. They now sit on two standoffs at the
+     * rear edge of the bottom plate, leaning back and outward, clear of the pack
+     * and clear of the rear props. */
+    for (const [ax, lean, twist] of [[-16, 0.42, -0.20], [16, 0.34, 0.18]]) {
+      const mount = new THREE.Group();
+      mount.position.set(ax, 2, 46);
+      Q.add(mount);
+
+      // the post they are clamped to
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.2, 12, 12), metal);
+      post.position.y = 6;
+      mount.add(post);
+      // a printed clamp block
+      const clamp = new THREE.Mesh(new THREE.BoxGeometry(8, 5, 7),
+        new THREE.MeshStandardMaterial({ color: 0x171c21, roughness: 0.7 }));
+      clamp.position.y = 12;
+      mount.add(clamp);
+
+      // the antenna itself: a rigid stem with a flexible tip
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 46, 8),
+        new THREE.MeshStandardMaterial({ color: 0x14181c, roughness: 0.66 }));
+      stem.position.y = 36;
+      mount.add(stem);
+      const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 22, 12),
+        new THREE.MeshStandardMaterial({ color: 0x0f1216, roughness: 0.8 }));
+      sleeve.position.y = 62;
+      mount.add(sleeve);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(2.4, 12, 10),
+        new THREE.MeshStandardMaterial({ color: 0x2a3138, roughness: 0.6 }));
+      cap.position.y = 74;
+      mount.add(cap);
+
+      mount.rotation.z = twist;
+      // lean TOWARDS the rear. Rotating about +X tilts a +Y stem towards +Z, and
+      // +Z is the rear of the airframe (the camera cage is at -Z), so the sign is
+      // positive. Negative lean put them forward across the battery.
+      mount.rotation.x = lean;
     }
   }
 
   /* --- motors + props: the d.js construction, with the real 2306 mesh swapped in
    * once it has loaded --- */
-  const motors = MP.map(([x, z], i) => {
+let motors = MP.map(([x, z], i) => {
     const grp = new THREE.Group();
     grp.position.set(x, 2.5, z);
     Q.add(grp);
@@ -310,12 +398,6 @@ export function createQuad(renderer) {
     ring.position.y = 20;
     grp.add(ring);
 
-    const nut = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3, 6), metal);
-    nut.position.y = 22.4;
-    grp.add(nut);
-
-    // the prop disc, exactly as d.js draws it: MeshBasicMaterial, so it stays
-    // bright no matter how the studio is lit
     const prop = new THREE.Mesh(
       new THREE.CircleGeometry(PROP_R, 64),
       new THREE.MeshBasicMaterial({ map: propTex, transparent: true, depthWrite: false, side: THREE.DoubleSide })
@@ -323,6 +405,41 @@ export function createQuad(renderer) {
     prop.rotation.x = -Math.PI / 2;
     prop.position.y = 24;
     grp.add(prop);
+
+    /* modelled blades, spun by the same pivot as the disc. They sit under the
+     * blur, so at low RPM the blades read and at high RPM they are lost in the
+     * smear, which is exactly how a real prop behaves on camera. */
+    const bladePivot = new THREE.Group();
+    bladePivot.position.y = 24.6;
+    grp.add(bladePivot);
+    const bladeMat = new THREE.MeshPhysicalMaterial({
+      color: 0x2a3138, roughness: 0.44, clearcoat: 0.45, clearcoatRoughness: 0.35, metalness: 0.06,
+    });
+    const bladeShape = propBladeShape();
+    for (let b = 0; b < 3; b++) {
+      const holder = new THREE.Group();
+      holder.rotation.y = (b / 3) * Math.PI * 2;
+      const blade = shapeMesh(bladeShape, 1.5, bladeMat, 1.0);
+      blade.rotation.x = -Math.PI / 2;
+      blade.rotation.z = -0.10;        // pitch
+      blade.position.set(0, 0, 0);
+      holder.add(blade);
+      bladePivot.add(holder);
+    }
+
+    /* the prop nut that holds the prop on. Without this the blades appear to
+     * float; with it the assembly reads as bolted to the bell. */
+    const nutMat = new THREE.MeshStandardMaterial({ color: 0xb9c3cc, metalness: 0.95, roughness: 0.22 });
+    const nut = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, 4.2, 6), nutMat);
+    nut.position.y = 27.2;
+    grp.add(nut);
+    const nutTop = new THREE.Mesh(new THREE.CylinderGeometry(4.4, 5.4, 1.4, 6), nutMat);
+    nutTop.position.y = 30.0;
+    grp.add(nutTop);
+    // the washer the nut bears on
+    const washer = new THREE.Mesh(new THREE.CylinderGeometry(6.6, 6.6, 0.8, 20), nutMat);
+    washer.position.y = 25.2;
+    grp.add(washer);
 
     const glow = new THREE.Mesh(
       new THREE.PlaneGeometry(150, 150),
@@ -332,7 +449,7 @@ export function createQuad(renderer) {
     glow.position.y = 24.5;
     grp.add(glow);
 
-    return { grp, proc, prop, glow, bell, ring, dir: i === 0 || i === 3 ? 1 : -1 };
+    return { grp, proc, prop, bladePivot, glow, bell, ring, nut, dir: i === 0 || i === 3 ? 1 : -1 };
   });
 
   /* --- light rig: the d.js setup, plus a floor that exists --- */
@@ -406,7 +523,7 @@ export function createQuad(renderer) {
       bb.getCenter(centre);
       // sit the motor on the arm: centre in X/Z, base at y = 0
       const mat = new THREE.MeshStandardMaterial({
-        color: 0x9aa5b0, metalness: 0.95, roughness: 0.28,
+        color: 0x9fa9b3, metalness: 0.78, roughness: 0.42, envMapIntensity: 1.15,
       });
       realMotor = { geometry, mat, size, bb };
       motors.forEach((m) => {
