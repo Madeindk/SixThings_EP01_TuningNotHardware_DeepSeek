@@ -32,10 +32,14 @@ and a `sixthings_ep01_p1_timing.csv` measured on that render.
 
 ## What is committed
 
-- `sixthings_ep01_p1_timing.csv` — measured start, end and duration per scene (from the
-  previous audio, see the warning below)
-- `sixthings_ep01_render_summary.json` and `sixthings_ep01_respell_log.md/.json` in `audio/andrew/`
-  record how this render was produced and which TTS input respells were applied
+- `sixthings_ep01_p1_timing.csv` — measured start, end and duration per scene, from the
+  Andrew render. This is the file the renderer cuts to.
+- `andrew/` — the narration itself: 11 scene MP3s, the full track, and the respell log and
+  render summary for that render.
+- `previous-chain/` — the artefacts that came with the original package from the earlier
+  `bm_daniel` chain: the per-sentence phoneme records and the old render summary and respell
+  logs. Kept for provenance only. They do not describe the Andrew audio, and nothing in the
+  production should read them as current.
 
 ## Warning: the timing sheet must be regenerated after a render
 

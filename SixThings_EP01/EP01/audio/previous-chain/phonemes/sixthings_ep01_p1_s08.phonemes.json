@@ -1,0 +1,142 @@
+[
+  {
+    "paragraph": 0,
+    "sentence": 0,
+    "official_text": "Sign six.",
+    "tts_text": "Sign six.",
+    "phonemes": "sˈaɪn sˈɪks."
+  },
+  {
+    "paragraph": 0,
+    "sentence": 1,
+    "official_text": "It flies beautifully, until you punch out.",
+    "tts_text": "It flies beautifully, until you punch out.",
+    "phonemes": "ɪt flˈaɪz bjˈuːtɪfəli, ʌntˈɪl juː pˈʌntʃ ˈaʊt."
+  },
+  {
+    "paragraph": 1,
+    "sentence": 0,
+    "official_text": "At low and mid throttle, the quad is locked in.",
+    "tts_text": "At low and mid throttle, the quad is locked in.",
+    "phonemes": "at lˈəʊ and mˈɪd θɹˈɒtəl, ðə kwˈɒd ɪz lˈɒkt ˈɪn."
+  },
+  {
+    "paragraph": 1,
+    "sentence": 1,
+    "official_text": "But on a long punch-out, or in fast forward flight, there is fast oscillation, or an audible flutter.",
+    "tts_text": "But on a long punch-out, or in fast forward flight, there is fast oscillation, or an audible flutter.",
+    "phonemes": "bˌʌt ˌɒn ɐ lˈɒŋ pˈʌntʃˈaʊt, ɔːɹ ɪn fˈast fˈɔːwəd flˈaɪt, ðeəɹ ɪz fˈast ˌɒsɪlˈeɪʃən, ɔːɹ ɐn ˈɔːdɪbəl flˈʌtə."
+  },
+  {
+    "paragraph": 1,
+    "sentence": 2,
+    "official_text": "Ease off, and it disappears.",
+    "tts_text": "Ease off, and it disappears.",
+    "phonemes": "ˈiːz ˈɒf, and ɪt dˌɪsɐpˈiəz."
+  },
+  {
+    "paragraph": 2,
+    "sentence": 0,
+    "official_text": "In the log, the clue is the throttle trace.",
+    "tts_text": "In the log, the clue is the throttle trace.",
+    "phonemes": "ɪnðə lˈɒɡ, ðə klˈuː ɪz ðə θɹˈɒtəl tɹˈeɪs."
+  },
+  {
+    "paragraph": 2,
+    "sentence": 1,
+    "official_text": "Mark the oscillation and check where the throttle was.",
+    "tts_text": "Mark the oscillation and check where the throttle was.",
+    "phonemes": "mˈɑːk ðɪ ˌɒsɪlˈeɪʃən and tʃˈɛk wˌeə ðə θɹˈɒtəl wɒz."
+  },
+  {
+    "paragraph": 2,
+    "sentence": 2,
+    "official_text": "If the shaking appears only above a certain throttle position, and the same moves at cruise are clean, the problem follows throttle.",
+    "tts_text": "If the shaking appears only above a certain throttle position, and the same moves at cruise are clean, the problem follows throttle.",
+    "phonemes": "ɪf ðə ʃˈeɪkɪŋ ɐpˈiəz ˈəʊnli əbˌʌv ɐ sˈɜːtən θɹˈɒtəl pəzˈɪʃən, and ðə sˈeɪm mˈuːvz at kɹˈuːz ɑː klˈiːn, ðə pɹˈɒbləm fˈɒləʊz θɹˈɒtəl."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 0,
+    "official_text": "Why tuning?",
+    "tts_text": "Why tuning?",
+    "phonemes": "wˌaɪ tjˈuːnɪŋ?"
+  },
+  {
+    "paragraph": 3,
+    "sentence": 1,
+    "official_text": "Gains tuned around hover can be too strong near full throttle, where thrust no longer grows in a simple straight line with the motor command.",
+    "tts_text": "Gains tuned around hover can be too strong near full throttle, where thrust no longer grows in a simple straight line with the motor command.",
+    "phonemes": "ɡˈeɪnz tjˈuːnd ɐɹˈaʊnd hˈɒvə kan biː tˈuː stɹˈɒŋ nˌiə fˈʊl θɹˈɒtəl, wˌeə θɹˈʌst nˌəʊ lˈɒŋɡə ɡɹˈəʊz ɪn ɐ sˈɪmpəl stɹˈeɪt lˈaɪn wɪððə mˈəʊtə kəmˈand."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 2,
+    "official_text": "Betaflight has a feature built for exactly this: TPA, throttle PID attenuation, which reduces gains as throttle rises past a breakpoint.",
+    "tts_text": "Betaflight has a feature built for exactly this: T P A, throttle P I D attenuation, which reduces gains as throttle rises past a breakpoint.",
+    "phonemes": "bˈeɪtəflˌaɪt hɐz ɐ fˈiːtʃə bˈɪlt fɔːɹ ɛɡzˈaktli ðˈɪs: tˈiː pˈiː ˈeɪ, θɹˈɒtəl pˈiː aɪ dˈiː ɐtˌɛnjuːˈeɪʃən, wˌɪtʃ ɹɪdjˈuːsɪz ɡˈeɪnz az θɹˈɒtəl ɹˈaɪzɪz pˈast ɐ bɹˈeɪkpɔɪnt."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 3,
+    "official_text": "A quad that flies fine at low and mid throttle, but oscillates only at high throttle, is the situation TPA was made for.",
+    "tts_text": "A quad that flies fine at low and mid throttle, but oscillates only at high throttle, is the situation T P A was made for.",
+    "phonemes": "ɐ kwˈɒd ðat flˈaɪz fˈaɪn at lˈəʊ and mˈɪd θɹˈɒtəl, bˌʌt ˈɒsɪlˌeɪts ˈəʊnli at hˈaɪ θɹˈɒtəl, ɪz ðə sˌɪtʃuːˈeɪʃən tˈiː pˈiː ɐ wɒz mˈeɪd fɔː."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 4,
+    "official_text": "The trade-off is consistency.",
+    "tts_text": "The trade-off is consistency.",
+    "phonemes": "ðə tɹˈeɪdˈɒf ɪz kənsˈɪstənsi."
+  },
+  {
+    "paragraph": 3,
+    "sentence": 5,
+    "official_text": "The quad will respond a little differently at different throttle positions.",
+    "tts_text": "The quad will respond a little differently at different throttle positions.",
+    "phonemes": "ðə kwˈɒd wɪl ɹɪspˈɒnd ɐ lˈɪtəl dˈɪfɹəntli at dˈɪfɹənt θɹˈɒtəl pəzˈɪʃənz."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 0,
+    "official_text": "The counter-check.",
+    "tts_text": "The counter-check.",
+    "phonemes": "ðə kˈaʊntətʃˈɛk."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 1,
+    "official_text": "A frequency that stays fixed, wherever the throttle is, behaves like a structure, not a gain.",
+    "tts_text": "A frequency that stays fixed, wherever the throttle is, behaves like a structure, not a gain.",
+    "phonemes": "ɐ fɹˈiːkwənsi ðat stˈeɪz fˈɪkst, weəɹˈɛvə ðə θɹˈɒtəl ɪz, bɪhˈeɪvz lˈaɪk ɐ stɹˈʌktʃə, nˌɒtə ɡˈeɪn."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 2,
+    "official_text": "Frames, arms, standoffs and mounts all have their own resonances.",
+    "tts_text": "Frames, arms, standoffs and mounts all have their own resonances.",
+    "phonemes": "fɹˈeɪmz, ˈɑːmz, stˈandɒfs and mˈaʊnts ˈɔːl hav ðeəɹ ˈəʊn ɹˈɛzənənsɪz."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 3,
+    "official_text": "If a narrow peak sits at the same frequency from hover to full throttle, check the frame hardware before you change the tune.",
+    "tts_text": "If a narrow peak sits at the same frequency from hover to full throttle, check the frame hardware before you change the tune.",
+    "phonemes": "ɪf ɐ nˈaɹəʊ pˈiːk sˈɪts at ðə sˈeɪm fɹˈiːkwənsi fɹɒm hˈɒvə tə fˈʊl θɹˈɒtəl, tʃˈɛk ðə fɹˈeɪm hˈɑːdweə bɪfˌɔː juː tʃˈeɪndʒ ðə tjˈuːn."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 4,
+    "official_text": "EasyQuadTune shows that frequency view from your log.",
+    "tts_text": "Easy Quad Tune shows that frequency view from your log.",
+    "phonemes": "ˈiːzi kwˈɒd tjˈuːn ʃˈəʊz ðat fɹˈiːkwənsi vjˈuː fɹɒm jɔː lˈɒɡ."
+  },
+  {
+    "paragraph": 4,
+    "sentence": 5,
+    "official_text": "Naming the physical cause still needs your hands on the quad.",
+    "tts_text": "Naming the physical cause still needs your hands on the quad.",
+    "phonemes": "nˈeɪmɪŋ ðə fˈɪzɪkəl kˈɔːz stˈɪl nˈiːdz jɔː hˈandz ɒnðə kwˈɒd."
+  }
+]
