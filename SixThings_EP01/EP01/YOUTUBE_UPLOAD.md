@@ -139,6 +139,11 @@ later, its attribution goes in the same place.
 
 ## What you have to do
 
+There is also a finished local kit with only the files needed to publish —
+video, both thumbnails and paste-ready title, description, chapters and tags —
+at `C:\Users\Thomas\Downloads\EP01FINISH`. It is deliberately outside the repo so
+it never drifts into version control.
+
 1. Open [YouTube Studio](https://studio.youtube.com) → **Create** → **Upload videos**.
 2. Drop in `SixThings_EP01/EP01/out/SixThings_EP01_TuningNotHardware.mp4`
    (75.7 MB, uploads in well under a minute on a normal connection).
