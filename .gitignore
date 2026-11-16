@@ -54,3 +54,6 @@ build/layout-issues.txt
 build/ref/
 build/preview6/
 build/frames6/
+
+# XL7 CAD-reference (Fusion 360-filer, kan ikke bruges direkte af rendereren).
+build/ref/

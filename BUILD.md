@@ -41,6 +41,75 @@ Verification, run on the finished file:
 | `build/preview.js` | render single frames at arbitrary times, for review |
 | `build/diag.js` | font and layout diagnostics |
 
+### The current renderer: `build/renderer6/`
+
+The first renderer (above) is superseded but kept because its HUD helpers are still
+useful reading. The film is built by this set:
+
+| File | Role |
+|---|---|
+| `build/server.js` | static server, so modules and fonts load as they do in a browser |
+| `build/renderer6/index.html` | two stacked canvases: WebGL plate under, 2D overlay over |
+| `build/renderer6/lib6.js` | type, HUD panels, charts, and the layout audit |
+| `build/renderer6/quad6.js` | the airframe and the studio light rig |
+| `build/renderer6/flight6.js` | the manoeuvre that each beat performs |
+| `build/renderer6/main6.js` | beat table, E cards, compositing |
+| `build/render6.js` | frame driver over http, with the layout audit collected per frame |
+| `build/assemble6.js` | concat + mux + delivery encode |
+| `build/preview6.js` | single frames at arbitrary times |
+
+Build:
+
+```
+node build/render6.js --fps 30 --encode
+node build/assemble6.js
+```
+
+## The quad must show what is being explained
+
+This is the part that matters most, and it is why motion is authored per beat rather than
+applied as one generic wiggle. `flight6.js` maps each beat to a manoeuvre:
+
+| Manoeuvre | What it does | Where |
+|---|---|---|
+| `chopWash` | chops throttle, falls through its own air, shakes with the wash, settles in clean air | sign 1 |
+| `spinDown` | motors wind down while the bells stay warm | sign 2 |
+| `rollNod` | full roll, then the nose nods back past level and rings out | sign 3 |
+| `lagSnap` | arrives late, then overshoots the target and rings back | sign 4 |
+| `twitch` | three small sharp impulses, never a drift | sign 5 |
+| `punchOsc` | smooth cruise, violent oscillation on a punch-out, calm again | sign 6 |
+| `dropIn` | the opening descent past the tree | scene 1 |
+| `hover`, `present`, `reversal` | idle life, or no manoeuvre at all | scene cards |
+
+Every manoeuvre is a pure function of `u` (progress through the beat), so a frame renders
+identically twice. The camera follows the manoeuvre with damping, which keeps a drop or a
+climb framed without the camera chasing the object exactly.
+
+## Realism notes
+
+The airframe is modelled to 5" freestyle dimensions and was checked against a photograph of
+race quads on Wikimedia Commons:
+
+- 220 mm motor-to-motor diagonal, 112 mm centre-to-motor
+- 28 mm motor bell on a 2207 stator, with ribs and a prop nut
+- 127 mm props on a frame whose body is narrow and tall
+- propellers dominate the silhouette, which is what the earlier box model got wrong
+- stack: ESC and FC boards, standoffs, MOSFETs, gyro can, USB, boot button, capacitor
+- XT60, three motor wires per arm, camera cage with a tilted lens, battery with straps,
+  two antennas
+
+A propeller is drawn twice: modelled blades at low RPM and a motion-blurred disc at high RPM,
+cross-faded by throttle. The disc is the technique from the reference scene: three blades
+stamped at 14 rotations each, which is what makes the spin read as rotation.
+
+## Lighting
+
+The first attempt used a SpotLight with physical decay as the key. Over the ~600 mm from lamp
+to airframe it lost almost all of its illuminance, and the frame was 97 percent black. The key
+is now a directional light with no distance falloff, with rim, fill and kick lights, a real
+floor plane, and a soft radial pool of light. Brightness was tuned by measuring the mean
+luminance of rendered frames rather than by eye.
+
 ## Delivery encode
 
 `render.js` writes scene clips at CRF 17 (the master). `assemble.js` muxes them against the

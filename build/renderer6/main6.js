@@ -30,7 +30,7 @@ renderer.setPixelRatio(1);
 renderer.setSize(W, H, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.35;
+renderer.toneMappingExposure = 1.12;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -41,34 +41,52 @@ scene.add(tree);
 
 const camera = new THREE.PerspectiveCamera(30, W / H, 5, 6000);
 
-/* camera presets, in the manner of the reference shots */
+/* Camera presets.
+ *
+ * The base orbit is the reference scene's: a 30-degree lens at about 900 from the
+ * centre, elevated around 38 degrees, drifting slowly in azimuth. That framing is
+ * what makes the airframe read as an object rather than as a plan view. Presets
+ * change azimuth and elevation, never below about 20 degrees: a low angle flattens
+ * the props into ellipses and the quad stops reading as a quad.
+ *
+ *   az radians around the vertical axis from +Z, el radians above the horizon,
+ *   d distance from the centre.
+ */
 function setCamera(preset, t, u, fs) {
   const drift = ease.sine((Math.sin(t * 0.22) + 1) / 2);
-  const P = {
-    hero: [[-70, 108, 400], [78, 20, 0]],
-    wide: [[16, 118, 420], [86, 10, 0]],
-    drop: [[-52, 180, 450], [70, -46, 0]],
-    macro: [[54, 44, 122], [44, 26, 14]],
-    low: [[56, 36, 340], [76, 18, 0]],
-    top: [[78, 250, 220], [46, 0, 0]],
-    dim: [[-110, 140, 470], [122, 14, 0]],
-    three: [[46, 88, 410], [74, 8, 0]],
-  }[preset] || P.hero;
-  const [pos, look] = P;
 
-  // The camera follows the manoeuvre so a drop, a climb or a roll stays framed.
-  // Follow is damped: the quad moves inside the frame, the frame does not chase
-  // it exactly, which is what makes the motion legible.
+  if (preset === "macro") {
+    // close on a bell: low, tight, drifting
+    camera.position.set(96 - u * 16, 46 - u * 5, 152 - u * 14);
+    camera.lookAt(78, 24, 30);
+    return;
+  }
+
+  const orbit = {
+    hero: { az: 0.62, el: 0.62, d: 810 },
+    wide: { az: 0.30, el: 0.58, d: 800 },
+    drop: { az: 0.22, el: 0.52, d: 860 },
+    low: { az: 0.55, el: 0.34, d: 780 },
+    three: { az: 0.44, el: 0.46, d: 800 },
+    top: { az: 0.62, el: 1.02, d: 860 },
+    dim: { az: 1.04, el: 0.54, d: 920 },
+  }[preset] || { az: 0.62, el: 0.62, d: 900 };
+
+  const az = orbit.az + (drift - 0.5) * 0.10;
+  const el = orbit.el + Math.sin(t * 0.42) * 0.012;
+  const d = orbit.d;
+
+  // Damped follow: the object moves inside the frame, the frame does not chase it
+  // exactly, which is what keeps a drop or a climb legible.
   const fy = fs ? fs.pos[1] : 0;
   const fx = fs ? fs.pos[0] : 0;
 
-  camera.position.set(pos[0] + drift * 22 + fx * 0.25, pos[1] + Math.sin(t * 0.62) * 7 + fy * 0.55, pos[2]);
-  camera.lookAt(look[0] + fx * 0.45, look[1] + fy * 0.75, look[2]);
-
-  if (preset === 'macro') {
-    camera.position.set(54 - u * 8, 43 - u * 3, 122 - u * 8);
-    camera.lookAt(44, 26 - u * 2, 14);
-  }
+  camera.position.set(
+    Math.sin(az) * Math.cos(el) * d + fx * 0.22,
+    Math.sin(el) * d + fy * 0.62,
+    Math.cos(az) * Math.cos(el) * d,
+  );
+  camera.lookAt(fx * 0.42, 16 + fy * 0.85, 0);
 }
 
 /* one-off render of the quad with alpha, used as the E-mode cut-out */
@@ -792,28 +810,23 @@ export async function renderFrame(spec) {
   Q.rotation.set(fs.rot[0], fs.rot[2], fs.rot[1]);
   tree.visible = b.cam === 'drop';
 
-  // prop spin follows throttle; the modelled blades fade into the blur disc as RPM
-  // rises, which is what makes the spin read as rotation
-  const rpm = clamp(fs.throttle * 1.35, 0, 1);
-  const blend = ease.io(clamp((rpm - 0.10) / 0.45));
+  // prop spin follows throttle. The disc carries a blade-smear texture, so it
+  // reads as rotation at any angle; d.js rotates its circle about z.
+  const rpm = clamp(fs.throttle * 1.4, 0, 1);
   motors.forEach((m, i) => {
     const local = clamp(rpm * (1 + 0.04 * Math.sin(i * 2.1)), 0, 1);
-    m.blades.rotation.y = m.dir * tLocal * (26 + 78 * local);
-    m.blades.traverse((o) => {
-      if (o.material && o.material.opacity !== undefined) o.material.opacity = 1 - blend;
-      if (o.material) o.material.transparent = blend > 0.01;
-    });
-    m.disc.material.opacity = 0.98 * blend;
-    m.disc.rotation.z = m.dir * tLocal * 6;
-    m.glow.material.opacity = 0.05 + 0.22 * local;
-    m.glow.scale.setScalar(0.8 + 0.5 * local);
+    m.prop.rotation.z = m.dir * tLocal * (22 + 70 * local);
+    m.prop.material.opacity = 0.55 + 0.45 * local;
+    m.glow.material.opacity = 0.06 + 0.20 * local;
+    m.glow.scale.setScalar(0.85 + 0.45 * local);
+    // the ring glows brighter with motor effort, as it does in the reference
+    m.ring.material.emissiveIntensity = 0.35 + 1.9 * Math.pow(local, 1.4);
   });
 
-  // bell heat: desaturated warm shimmer only, never the accent
-  materials.heatMat.emissiveIntensity = fs.heat * 0.55;
-  materials.bellMat.color.setHex(fs.heat > 0.02 ? 0x9d9084 : 0x9aa5b0);
-  materials.bellMat.emissive.setHex(0x5a2a10);
-  materials.bellMat.emissiveIntensity = fs.heat * 0.30;
+  // bell heat: a desaturated warm shimmer, never the accent
+  materials.bellSteel.color.setHex(fs.heat > 0.02 ? 0x2b2420 : 0x202329);
+  materials.bellSteel.emissive.setHex(0x5a2a10);
+  materials.bellSteel.emissiveIntensity = fs.heat * 0.30;
 
   renderer.render(scene, camera);
 
