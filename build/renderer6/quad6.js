@@ -112,6 +112,15 @@ export function createQuad(renderer) {
   const heatMat = new THREE.MeshStandardMaterial({
     color: 0x9d6a3c, metalness: 0.6, roughness: 0.45, emissive: 0x3a1a08, emissiveIntensity: 0,
   });
+  // PCB: dark green-black with a faint trace sheen, the way a real stack reads
+  const pcbMat = new THREE.MeshPhysicalMaterial({
+    color: 0x16202a, roughness: 0.38, clearcoat: 0.7, clearcoatRoughness: 0.3, metalness: 0.05,
+  });
+  const chipMat = new THREE.MeshStandardMaterial({ color: 0x0b0d10, roughness: 0.5, metalness: 0.1 });
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x8a7a63, roughness: 0.62, metalness: 0.25 });
+  const wireMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.75, metalness: 0.05 });
+
+  let motorsWires = [];
 
   const Q = new THREE.Group();
   scene.add(Q);
@@ -145,13 +154,67 @@ export function createQuad(renderer) {
     Q.add(so);
   }
 
-  /* --- flight stack --- */
-  const fc = new THREE.Mesh(new THREE.BoxGeometry(36, 1.6, 36), new THREE.MeshPhysicalMaterial({ color: 0x18202a, roughness: 0.42, clearcoat: 0.6 }));
-  fc.position.y = 14.5; Q.add(fc);
-  const mcu = new THREE.Mesh(new THREE.BoxGeometry(10, 1.5, 10), new THREE.MeshStandardMaterial({ color: 0x0c0e11, roughness: 0.5 }));
-  mcu.position.y = 16.1; mcu.rotation.y = Math.PI / 4; Q.add(mcu);
-  const usb = new THREE.Mesh(new THREE.BoxGeometry(7.6, 2.6, 5.2), metal);
-  usb.position.set(0, 16.6, 14.4); Q.add(usb);
+  /* --- flight stack: ESC board, FC board, standoffs, wiring --- */
+  {
+    const stackY = 8;
+    // ESC board (bottom of the stack): visible outside the FC footprint
+    const escPcb = new THREE.Mesh(new THREE.BoxGeometry(38, 1.6, 38), pcbMat);
+    escPcb.position.y = stackY;
+    escPcb.castShadow = true;
+    Q.add(escPcb);
+    // electrolytic capacitor standing at the rear of the ESC
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.2, 13, 18), capMat);
+    cap.position.set(-13, stackY + 8, 15);
+    cap.rotation.x = 0.18;
+    Q.add(cap);
+    const capTop = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.2, 1.2, 18), metal);
+    capTop.position.set(-13, stackY + 14.6, 15.1);
+    capTop.rotation.x = 0.18;
+    Q.add(capTop);
+
+    // FC board, four standoffs, USB, boot button, gyro can
+    const fcBoard = new THREE.Mesh(new THREE.BoxGeometry(36, 1.6, 36), pcbMat);
+    fcBoard.position.y = 21;
+    fcBoard.castShadow = true;
+    Q.add(fcBoard);
+
+    for (const [sx, sz] of [[-15, -15], [15, -15], [-15, 15], [15, 15]]) {
+      const so = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 12, 12), metal);
+      so.position.set(sx, stackY + 8.5, sz);
+      Q.add(so);
+    }
+
+    const mcu = new THREE.Mesh(new THREE.BoxGeometry(10, 1.5, 10), chipMat);
+    mcu.position.y = 22.3; mcu.rotation.y = Math.PI / 4; Q.add(mcu);
+    // the gyro is a small metal can: recognisable, and it is what sign four is about
+    const gyroCan = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.3, 4.4), metal);
+    gyroCan.position.set(9, 22.2, 9); Q.add(gyroCan);
+    const usb = new THREE.Mesh(new THREE.BoxGeometry(7.6, 2.6, 5.2), metal);
+    usb.position.set(0, 22.6, 14.6); Q.add(usb);
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(3, 1.2, 2), capMat);
+    boot.position.set(12, 22.3, 12.5); Q.add(boot);
+
+    // motor wires: three thin leads from each ESC corner out along the arm
+    motorsWires = [];
+    for (const [x, z] of MP) {
+      for (let k = 0; k < 3; k++) {
+        const a = Math.atan2(z, x);
+        const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, ARM * 0.92, 6), wireMat);
+        const mx = x * 0.52, mz = z * 0.52;
+        wire.position.set(mx + Math.cos(a + Math.PI / 2) * (k - 1) * 3.2, 3.2, mz + Math.sin(a + Math.PI / 2) * (k - 1) * 3.2);
+        wire.rotation.z = Math.PI / 2;
+        wire.rotation.y = -a;
+        Q.add(wire);
+        motorsWires.push(wire);
+      }
+    }
+
+    // battery lead: XT60 from the ESC out to the pack
+    const xt60 = new THREE.Mesh(new THREE.BoxGeometry(9, 6, 8), plastic);
+    xt60.position.set(14, 12, 26); Q.add(xt60);
+    const lead = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 14, 8), rubber);
+    lead.position.set(10, 20, 30); lead.rotation.z = 0.6; Q.add(lead);
+  }
 
   /* --- camera cage --- */
   {
@@ -249,13 +312,16 @@ export function createQuad(renderer) {
   });
 
   /* --- lights, environment, floor --- */
-  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.08, 0.1, 100).texture;
+  pmrem.dispose();
 
   const key = new THREE.SpotLight(0xD2DEE6, 2600, 0, Math.PI / 6.2, 0.62, 1.15);
   key.position.set(-190, 540, 300);
   key.target.position.set(0, 0, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024);
   Object.assign(key.shadow.camera, { left: -300, right: 300, top: 300, bottom: -300, near: 80, far: 1400 });
   key.shadow.radius = 6;
   key.shadow.bias = -0.0006;

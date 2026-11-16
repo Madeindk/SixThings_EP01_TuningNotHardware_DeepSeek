@@ -60,35 +60,41 @@ function setCamera(preset, t, u) {
 
 /* one-off render of the quad with alpha, used as the E-mode cut-out */
 let cutoutImg = null;
+
+/* Render the quad once with alpha for the E-mode cut-out.
+ * Deliberately cheap: no PMREM, no shadows, no second quad build. The first
+ * attempt spawned a second full scene with its own PMREM and hung SwiftShader,
+ * so this clones the existing meshes and lights them with three directionals. */
 function makeCutout() {
   const size = 1100;
   const r2 = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-  r2.setPixelRatio(2);
+  r2.setPixelRatio(1);
   r2.setSize(size, size, false);
   r2.outputColorSpace = THREE.SRGBColorSpace;
   r2.toneMapping = THREE.ACESFilmicToneMapping;
-  r2.toneMappingExposure = 1.5;
-  r2.shadowMap.enabled = true;
+  r2.toneMappingExposure = 1.6;
 
   const s2 = new THREE.Scene();
-  s2.environment = new THREE.PMREMGenerator(r2).fromScene(new (Object.getPrototypeOf(scene).constructor)(), 0.04);
-  const { Q: q2 } = createQuad(r2);
-  q2.rotation.set(0.30, -0.62, 0.07);
-  s2.add(q2);
-  s2.add(new THREE.AmbientLight(0x9fb0bd, 2.2));
-  const k = new THREE.DirectionalLight(0xffffff, 2.6); k.position.set(-260, 500, 380); s2.add(k);
-  const f = new THREE.DirectionalLight(0xb9cdda, 1.2); f.position.set(420, 120, 260); s2.add(f);
-  const rm = new THREE.DirectionalLight(0xe8f2f8, 1.6); rm.position.set(120, 240, -520); s2.add(rm);
+  const clone = Q.clone(true);
+  clone.rotation.set(0.30, -0.62, 0.07);
+  clone.position.y = 0;
+  s2.add(clone);
+
+  s2.add(new THREE.AmbientLight(0xa8b8c4, 2.6));
+  const k = new THREE.DirectionalLight(0xffffff, 3.0); k.position.set(-260, 520, 380); s2.add(k);
+  const f = new THREE.DirectionalLight(0xc2d4e0, 1.6); f.position.set(420, 140, 260); s2.add(f);
+  const rm = new THREE.DirectionalLight(0xeaf4fa, 2.0); rm.position.set(120, 260, -520); s2.add(rm);
 
   const c2 = new THREE.PerspectiveCamera(26, 1, 50, 5000);
   c2.position.set(0, 300, 900);
-  c2.lookAt(0, 20, 0);
+  c2.lookAt(0, 25, 0);
   r2.render(s2, c2);
 
   cutoutImg = document.createElement('canvas');
   cutoutImg.width = cutoutImg.height = size;
   cutoutImg.getContext('2d').drawImage(r2.domElement, 0, 0);
   r2.dispose();
+  r2.forceContextLoss?.();
 }
 
 /* ------------------------------------------------------------------ */
@@ -167,12 +173,14 @@ function paper() {
 
 function counter(num) {
   const x = W - SAFE.x;
-  text(g, num, x, 132, { size: 40, weight: 600, color: C.accent, align: 'right', font: F.text });
-  const nw = g.measureText(num).width;
-  g.save(); g.globalAlpha = 1;
+  g.save();
   g.font = `600 40px ${F.text}`;
-  const nw2 = g.measureText(num).width;
+  g.textBaseline = 'alphabetic';
+  const numW = g.measureText(num).width;
+  const restW = g.measureText(' / 06').width;
   g.restore();
+
+  text(g, num, x - restW, 132, { size: 40, weight: 600, color: C.accent, align: 'right', font: F.text });
   text(g, '/ 06', x, 132, { size: 40, weight: 600, color: C.ink, align: 'right', font: F.text });
   g.fillStyle = C.accent;
   g.fillRect(x - 56, 148, 56, 5);
@@ -229,19 +237,17 @@ function miniChart(scene, x, y, w, h) {
 function eTitleCard(t) {
   paper();
   const rv = ease.out(clamp(t / 0.28));
+  if (cutoutImg) g.drawImage(cutoutImg, W - 900, 300, 980, 980);
+
   g.save(); g.globalAlpha = rv;
-  display(g, '6 SIGNS', -20, 110 + 640 * 0.8, 640);
+  display(g, '6 SIGNS', -20, 260 + 430 * 0.76, 430);
   g.restore();
 
-  if (cutoutImg) g.drawImage(cutoutImg, W - 940, 280, 1000, 1000);
-
-  text(g, '6 Things · Episode 01', SAFE.x, 132, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
+  text(g, '6 Things · Episode 01', SAFE.x, 150, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
   g.fillStyle = C.accent;
-  g.fillRect(SAFE.x, 792, 96, 6);
-  text(g, 'Your quad has a tuning problem,', SAFE.x, 858, { size: 44, weight: 600, color: C.ink });
-  text(g, 'not a hardware problem', SAFE.x, 908, { size: 44, weight: 600, color: C.ink });
-  text(g, 'What you feel  ·  What the log shows  ·  Why it points at tuning  ·  The counter-check',
-    SAFE.x, 968, { size: 24, weight: 500, color: C.ink2 });
+  g.fillRect(SAFE.x, 800, 96, 6);
+  text(g, 'Your quad has a tuning problem,', SAFE.x, 862, { size: 38, weight: 600, color: C.ink });
+  text(g, 'not a hardware problem', SAFE.x, 912, { size: 38, weight: 600, color: C.ink });
 }
 
 function eBroken(t) {
@@ -256,18 +262,16 @@ function eSplit(t, beatDur) {
   paper();
   const mv = ease.io(clamp((t - beatDur * 0.32) / (beatDur * 0.28)));
   const cols = [
-    ['THE', 'PART', 'Bent prop, rough bearing, a cracked plate', mv],
-    ['THE', 'TUNE', 'A control loop doing exactly what it was told', mv],
+    ['THE PART', 'Bent prop, rough bearing, a cracked plate', 1 - mv],
+    ['THE TUNE', 'A control loop doing exactly what it was told', mv],
   ];
-  cols.forEach(([a, b, sub, active], i) => {
+  cols.forEach(([head, sub, on], i) => {
     const x = SAFE.x + i * 900;
-    display(g, a, x, 210 + 250 * 0.8, 250);
-    display(g, b, x, 210 + 250 * 0.8 + 200, 250);
-    text(g, sub, x, 640, { size: 30, weight: 500, color: C.ink2 });
-    const on = i === 1 ? clamp(active) : 1 - clamp(active);
-    g.fillStyle = C.accent;
+    display(g, head, x, 250 + 190 * 0.76, 190, { alpha: 0.45 + 0.55 * on });
+    text(g, sub, x, 560, { size: 30, weight: 500, color: C.ink2 });
     g.save(); g.globalAlpha = 0.25 + 0.75 * on;
-    g.fillRect(x, 700, 96 + 300 * on, 6);
+    g.fillStyle = C.accent;
+    g.fillRect(x, 600, 96 + 300 * on, 6);
     g.restore();
   });
 }
@@ -411,7 +415,7 @@ function chartPanel(box, title, d, o = {}) {
   const { x, y, w, h } = box;
   hudPanel(g, x, y, w, h, title, 'Synthetic example');
 
-  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 108, y1: y + h - 96 };
+  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 112, y1: y + h - 158 };
   const xMax = o.xMax || 1.6, yMin = o.yMin ?? -120, yMax = o.yMax ?? 380;
   const px = (v) => bx.x0 + (v / xMax) * (bx.x1 - bx.x0);
   const py = (v) => bx.y1 - ((v - yMin) / (yMax - yMin)) * (bx.y1 - bx.y0);
@@ -437,17 +441,20 @@ function chartPanel(box, title, d, o = {}) {
   if (o.note) text(g, o.note, px(o.noteAt) + 12, py(o.noteY), { size: 19, weight: 600, color: C.accent });
 
   if (o.throttle && d.thr) {
-    const ty0 = bx.y0 - 70, ty1 = bx.y0 - 30;
-    text(g, 'THROTTLE', bx.x0, ty0 - 8, { size: 17, weight: 500, color: C.huddim });
+    // Throttle lane sits at the bottom of the plot, inside the frame, so it can
+    // never collide with the panel title.
+    const ty1 = bx.y1 - 6, ty0 = bx.y1 - 58;
     const tpy = (v) => ty1 - (v / 80) * (ty1 - ty0);
     const pts = [];
     for (let i = 0; i < d.t.length; i += 8) {
       const qx = px(d.t[i]); if (qx > bx.x1) break;
       pts.push([qx, tpy(d.thr[i])]);
     }
-    g.save(); g.strokeStyle = C.huddim; g.lineWidth = 2; g.beginPath();
+    g.save(); g.strokeStyle = C.huddim; g.lineWidth = 2; g.globalAlpha = 0.85;
+    g.beginPath();
     pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b)));
     g.stroke(); g.restore();
+    text(g, 'throttle', bx.x1, ty0 - 8, { size: 15, weight: 500, color: C.huddim, align: 'right' });
   }
 
   legend(g, x + 22, y + h - 16, o.legend || [['sp', 'setpoint'], ['teal', 'gyro']]);
@@ -457,7 +464,7 @@ function stepPanel(box, progress) {
   const d = stepTrace(9001, { wn: 2 * Math.PI * 14, zeta: 0.35 });
   const { x, y, w, h } = box;
   hudPanel(g, x, y, w, h, 'Estimated step response', 'Synthetic example');
-  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 108, y1: y + h - 96 };
+  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 112, y1: y + h - 158 };
   const px = (v) => bx.x0 + (v / 0.5) * (bx.x1 - bx.x0);
   const py = (v) => bx.y1 - (v / 1.5) * (bx.y1 - bx.y0);
   const xTicks = [], yTicks = [];
@@ -477,7 +484,9 @@ function stepPanel(box, progress) {
   const cx = px(d.t[peak]), cy = py(d.gy[peak]);
   g.save(); g.strokeStyle = C.accent; g.lineWidth = 2;
   g.beginPath(); g.arc(cx, cy, 26, 0, 7); g.stroke(); g.restore();
-  text(g, 'overshoot', cx + 36, cy + 6, { size: 20, weight: 600, color: C.accent });
+  // The label goes above the peak, not to its right: to the right it collided
+  // with the y-axis tick numeral when the overshoot sat near the plot edge.
+  text(g, 'overshoot', cx + 36, cy - 22, { size: 20, weight: 600, color: C.accent });
 
   legend(g, x + 22, y + h - 16, [['sp', 'setpoint'], ['teal', 'measured']]);
 }
@@ -514,10 +523,8 @@ function spectrumPanel(box, progress) {
 
   text(g, 'below ~100 Hz (typical five-inch)', bx.x0 + 8, bx.y1 + 34, { size: 20, weight: 600, color: C.accent });
   text(g, 'motor and prop band', bx.x1, bx.y1 + 34, { size: 18, weight: 500, color: C.huddim, align: 'right' });
-  text(g, 'FREQUENCY (Hz)', (bx.x0 + bx.x1) / 2, bx.y1 + 66, { size: 18, weight: 600, color: C.huddim, track: 1.6, align: 'center', upper: true });
-  g.save(); g.translate(bx.x0 - 46, (bx.y0 + bx.y1) / 2); g.rotate(-Math.PI / 2);
-  text(g, 'RELATIVE AMPLITUDE', 0, 0, { size: 18, weight: 600, color: C.huddim, track: 1.6, align: 'center', upper: true });
-  g.restore();
+  text(g, 'FREQUENCY (Hz)', bx.x1, bx.y1 + 62, { size: 16, weight: 600, color: C.huddim, track: 1.2, align: 'right', upper: true });
+  text(g, 'RELATIVE AMPLITUDE', bx.x0, bx.y0 - 14, { size: 16, weight: 600, color: C.huddim, track: 1.2, upper: true });
 
   legend(g, x + 22, y + h - 16, [['teal', 'measured'], ['acc', 'problem band']]);
 }
@@ -639,7 +646,7 @@ const BEATS = {
     { m: 'F', cam: 'wide', k: 'chart', cap: ['01', 'Setpoint is what you asked for'] },
     { m: 'F', cam: 'wide', k: 'loop', cap: ['02', 'The error is the whole story'] },
     { m: 'F', cam: 'hero', k: 'chart', cap: ['03', 'Real motors take time'] },
-    { m: 'F', cam: 'dim', k: 'mini3', cap: ['04', 'Each gap tells a different story'] },
+    { m: 'F', cam: 'dim', k: 'mini3', full: true, cap: ['04', 'Each gap tells a different story'] },
     { m: 'E', k: 'rule' },
     { m: 'E', k: 'mechanics' },
   ],
@@ -681,7 +688,7 @@ const BEATS = {
     { m: 'F', cam: 'wide', k: 'chain', cap: ['02', 'A dropped packet shows up downstream'] },
     { m: 'F', cam: 'dim', k: 'chart', full: true, cap: ['03', 'Spikes that follow the stick'] },
     { m: 'E', k: 'check', display: 'TWO\nTESTS', items: ['Feedforward = 0 test flight', 'Temporary wide deadband', 'No change means it is not the cause'] },
-    { m: 'F', cam: 'macro', k: 'bars', cap: ['04', 'Twitch with the sticks centred is hardware'] },
+    { m: 'F', cam: 'macro', k: 'bars', cap: ['04', 'Sticks centred, still twitching'] },
   ],
   'P1-S08': [
     { m: 'E', k: 'sign' },

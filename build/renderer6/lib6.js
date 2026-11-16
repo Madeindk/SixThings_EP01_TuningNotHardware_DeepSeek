@@ -55,11 +55,10 @@ const FONT_FILES = [
 export async function loadFonts(base) {
   const faces = FONT_FILES.map(async ([family, weight, file]) => {
     try {
-      const ff = new FontFace(family, `url(${base}/SixThings_EP01/style/fonts/${file})`, { weight: String(weight) });
+      const ff = new FontFace(family, `url(${base}/${file})`, { weight: String(weight) });
       await ff.load();
       document.fonts.add(ff);
     } catch (e) {
-      // file:// blocks font fetches; the renderer serves over http, so this is a real error
       console.error('font failed', file, e.message);
     }
   });
@@ -74,7 +73,10 @@ let boxes = [];
 window.__issues = window.__issues || [];
 export function beginFrame() { boxes = []; }
 
-export function reg(x, y, w, h, s, a) { boxes.push({ x, y, w, h, s, a }); }
+/* `free` exempts a box from the safe-area check only. Oversized E display words
+ * are allowed to bleed off the frame edge by the style lock, but they still take
+ * part in the overlap check — text over text is never acceptable. */
+export function reg(x, y, w, h, s, a, free = false) { boxes.push({ x, y, w, h, s, a, free }); }
 
 export function endFrame(t) {
   for (let i = 0; i < boxes.length; i++) {
@@ -87,7 +89,7 @@ export function endFrame(t) {
     }
   }
   for (const a of boxes) {
-    if (a.a < 0.05) continue;
+    if (a.a < 0.05 || a.free) continue;
     if (a.x < SAFE.x - 1 || a.y < SAFE.y - 1 || a.x + a.w > W - SAFE.x + 1 || a.y + a.h > H - SAFE.y + 1) {
       window.__issues.push(`t=${t.toFixed(2)} OUTSIDE SAFE "${a.s}"`);
     }
@@ -103,7 +105,7 @@ export function endFrame(t) {
 export function text(g, s, x, y, o = {}) {
   const {
     size = 30, weight = 500, color = C.ink, align = 'left', base = 'alphabetic',
-    alpha = 1, track = 0, font = F.text, register = true, upper = false,
+    alpha = 1, track = 0, font = F.text, register = true, upper = false, free = false,
   } = o;
   if (alpha <= 0.001) return null;
   const str = upper ? String(s).toUpperCase() : String(s);
@@ -122,16 +124,29 @@ export function text(g, s, x, y, o = {}) {
   const x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
   const asc = size * 0.76, desc = size * 0.24;
   const y0 = base === 'middle' ? y - size * 0.5 : base === 'top' ? y : y - asc;
-  if (register) reg(x0, y0, w, asc + desc, str, alpha);
+  if (register) reg(x0, y0, w, asc + desc, str, alpha, free);
   return { x: x0, y: y0, w, h: asc + desc };
 }
 
-/* E display type: oversized, tracked in and cropped on purpose. */
+/* E display type: oversized, tracked in, and allowed to bleed off the frame edge.
+ * The registered box uses cap height, not the font em box: Barlow Condensed set at
+ * the lock's 0.80 line-height is meant to stack tightly, so an em-based box would
+ * report an overlap for type that reads perfectly. */
 export function display(g, s, x, y, size, o = {}) {
-  return text(g, s, x, y, {
-    size, weight: 900, font: F.display, color: C.ink, upper: true,
-    track: -size * 0.015, ...o,
-  });
+  const { alpha = 1, ...rest } = o;
+  g.save();
+  g.globalAlpha = alpha;
+  g.font = `900 ${size}px ${F.display}`;
+  g.letterSpacing = `${-size * 0.015}px`;
+  g.textAlign = 'left';
+  g.textBaseline = 'alphabetic';
+  const str = String(s).toUpperCase();
+  const w = g.measureText(str).width;
+  g.fillStyle = C.ink;
+  g.fillText(str, x, y);
+  g.restore();
+  reg(x, y - size * 0.60, w, size * 0.72, str, alpha, true);
+  return { x, y: y - size * 0.60, w, h: size * 0.72 };
 }
 
 export function rrect(g, x, y, w, h, r) {
@@ -184,7 +199,9 @@ export function legend(g, x, y, items, alpha = 1) {
   }
 }
 
-/* Axis frame with ticks, zero line and real units. */
+/* Axis frame. Box convention: y0 is the TOP edge, y1 the BOTTOM edge (the same
+ * direction the chart mapping uses), so tick labels and the unit label sit below
+ * y1 where a reader expects them. */
 export function axis(g, box, o = {}) {
   const { xTicks = [], yTicks = [], xLabel = '', yLabel = '', zeroY = null, alpha = 1 } = o;
   const { x0, x1, y0, y1 } = box;
@@ -193,28 +210,29 @@ export function axis(g, box, o = {}) {
   for (const [label, py] of yTicks) {
     g.beginPath(); g.moveTo(x0, py); g.lineTo(x1, py);
     g.strokeStyle = 'rgba(93,107,117,0.35)'; g.lineWidth = 1; g.stroke();
-    text(g, String(label), x0 - 12, py + 5, { size: 18, font: F.mono, color: C.huddim, align: 'right', alpha });
+    text(g, String(label), x0 - 12, py + 5, { size: 17, font: F.mono, color: C.huddim, align: 'right', alpha });
   }
   for (const [label, px] of xTicks) {
-    g.beginPath(); g.moveTo(px, y0); g.lineTo(px, y1);
-    g.strokeStyle = 'rgba(93,107,117,0.35)'; g.lineWidth = 1; g.stroke();
-    text(g, String(label), px, y0 + 24, { size: 18, font: F.mono, color: C.huddim, align: 'center', alpha });
+    g.beginPath(); g.moveTo(px, y1); g.lineTo(px, y1 + 6);
+    g.strokeStyle = 'rgba(93,107,117,0.55)'; g.lineWidth = 1; g.stroke();
+    // The tick at the origin would sit under the y-axis tick numerals, so it is
+    // left out; the axis line itself marks zero.
+    if (px - x0 > 34) {
+      text(g, String(label), px, y1 + 26, { size: 17, font: F.mono, color: C.huddim, align: 'center', alpha });
+    }
   }
   if (zeroY !== null) {
+    g.globalAlpha = alpha * 0.9;
     g.beginPath(); g.moveTo(x0, zeroY); g.lineTo(x1, zeroY);
-    g.strokeStyle = C.hudline; g.globalAlpha = alpha * 0.9; g.lineWidth = 1.2; g.stroke();
+    g.strokeStyle = C.hudline; g.lineWidth = 1.2; g.stroke();
+    g.globalAlpha = alpha;
   }
-  g.globalAlpha = alpha;
   g.strokeStyle = C.hudline; g.lineWidth = 1.2;
-  g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+  g.beginPath(); g.moveTo(x0, y1); g.lineTo(x1, y1); g.stroke();
   g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0, y1); g.stroke();
   g.restore();
-  if (xLabel) text(g, xLabel, (x0 + x1) / 2, y0 + 52, { size: 18, weight: 600, color: C.huddim, track: 1.44, align: 'center', upper: true, alpha });
-  if (yLabel) {
-    g.save(); g.globalAlpha = alpha; g.translate(x0 - 56, (y0 + y1) / 2); g.rotate(-Math.PI / 2);
-    text(g, yLabel, 0, 0, { size: 18, weight: 600, color: C.huddim, track: 1.44, align: 'center', upper: true, alpha });
-    g.restore();
-  }
+  if (yLabel) text(g, yLabel, x0, y0 - 16, { size: 16, weight: 600, color: C.huddim, track: 1.2, upper: true, alpha });
+  if (xLabel) text(g, xLabel, x1, y1 + 54, { size: 16, weight: 600, color: C.huddim, track: 1.2, upper: true, align: 'right', alpha });
 }
 
 /* Draw a series left-to-right up to `progress`. */

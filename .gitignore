@@ -43,3 +43,9 @@ build/renderer/fonts.css
 # Den faerdige film ligger i SixThings_EP01/EP01/out/.
 build/out/
 build/look/
+
+# renderer6-bygget: mellemklip og samlet arbejdsfil.
+build/clips6/
+build/out6/
+build/concat6.txt
+build/layout-issues.txt
