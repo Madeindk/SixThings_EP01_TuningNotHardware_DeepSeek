@@ -1,0 +1,843 @@
+/* 6 THINGS EP01 — frame renderer.
+ *
+ * Architecture adapted from shared/animation-reference working examples: a Three.js
+ * plate for the dimensional quad, composited under a canvas-2D layer that carries
+ * ALL type, HUD and charts. The 2D layer registers every text box, so endFrame()
+ * reports overlaps and safe-area breaches instead of leaving them to be spotted by
+ * eye (window.__issues).
+ *
+ * Deterministic: every pixel is a function of (scene, beat, t). No clock, no
+ * Math.random in layout.
+ */
+
+import * as THREE from 'three';
+import {
+  W, H, SAFE, C, F, ease, clamp, seg, lerp,
+  loadFonts, beginFrame, endFrame, text, display, rrect,
+  hudPanel, legend, axis, series, markerLine, panelGradient, brackets, vignette, rng,
+} from './lib6.js';
+import { createQuad, createTree } from './quad6.js';
+
+/* ------------------------------------------------------------------ */
+/* setup                                                              */
+/* ------------------------------------------------------------------ */
+const glCanvas = document.getElementById('gl');
+const g = document.getElementById('g').getContext('2d');
+
+const renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true, alpha: false });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const { scene, Q, motors, materials } = createQuad(renderer);
+const tree = createTree();
+tree.position.set(-520, -70, -430);
+scene.add(tree);
+
+const camera = new THREE.PerspectiveCamera(30, W / H, 5, 6000);
+
+/* camera presets, in the manner of the reference shots */
+function setCamera(preset, t, u) {
+  const drift = ease.sine((Math.sin(t * 0.22) + 1) / 2);
+  const P = {
+    hero: [[-150, 210, 780], [0, 20, 0]],
+    wide: [[-40, 300, 900], [0, 10, 0]],
+    drop: [[-120, 330, 880], [-40, -30, 0]],
+    macro: [[230, 120, 340], [120, 30, 60]],
+    low: [[80, 90, 620], [0, 30, 0]],
+    top: [[120, 520, 420], [0, 0, 0]],
+    dim: [[-300, 330, 1050], [140, 20, 0]],
+  }[preset] || P.hero;
+  const [pos, look] = P;
+  camera.position.set(pos[0] + drift * 26, pos[1] + Math.sin(t * 0.7) * 8, pos[2]);
+  camera.lookAt(look[0], look[1], look[2]);
+  if (preset === 'macro') camera.position.set(230 - u * 40, 118, 340 - u * 30);
+}
+
+/* one-off render of the quad with alpha, used as the E-mode cut-out */
+let cutoutImg = null;
+function makeCutout() {
+  const size = 1100;
+  const r2 = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  r2.setPixelRatio(2);
+  r2.setSize(size, size, false);
+  r2.outputColorSpace = THREE.SRGBColorSpace;
+  r2.toneMapping = THREE.ACESFilmicToneMapping;
+  r2.toneMappingExposure = 1.5;
+  r2.shadowMap.enabled = true;
+
+  const s2 = new THREE.Scene();
+  s2.environment = new THREE.PMREMGenerator(r2).fromScene(new (Object.getPrototypeOf(scene).constructor)(), 0.04);
+  const { Q: q2 } = createQuad(r2);
+  q2.rotation.set(0.30, -0.62, 0.07);
+  s2.add(q2);
+  s2.add(new THREE.AmbientLight(0x9fb0bd, 2.2));
+  const k = new THREE.DirectionalLight(0xffffff, 2.6); k.position.set(-260, 500, 380); s2.add(k);
+  const f = new THREE.DirectionalLight(0xb9cdda, 1.2); f.position.set(420, 120, 260); s2.add(f);
+  const rm = new THREE.DirectionalLight(0xe8f2f8, 1.6); rm.position.set(120, 240, -520); s2.add(rm);
+
+  const c2 = new THREE.PerspectiveCamera(26, 1, 50, 5000);
+  c2.position.set(0, 300, 900);
+  c2.lookAt(0, 20, 0);
+  r2.render(s2, c2);
+
+  cutoutImg = document.createElement('canvas');
+  cutoutImg.width = cutoutImg.height = size;
+  cutoutImg.getContext('2d').drawImage(r2.domElement, 0, 0);
+  r2.dispose();
+}
+
+/* ------------------------------------------------------------------ */
+/* synthetic data                                                     */
+/* ------------------------------------------------------------------ */
+function rateTrace(seed, dur, o = {}) {
+  const {
+    wn = 2 * Math.PI * 9, zeta = 0.75, amp = 320, start = 0.15, end = 0.5,
+    burst = null, noise = 3, throttle = null, dt = 0.002,
+  } = o;
+  const r = rng(seed);
+  const n = Math.round(dur / dt);
+  const t = new Float64Array(n), sp = new Float64Array(n), gy = new Float64Array(n);
+  let gg = 0, v = 0;
+  for (let i = 0; i < n; i++) {
+    const ti = i * dt; t[i] = ti;
+    sp[i] = ti > start && ti < end ? amp * Math.sin(Math.PI * (ti - start) / (end - start)) ** 2 : 0;
+    const a = wn * wn * (sp[i] - gg) - 2 * zeta * wn * v;
+    v += a * dt; gg += v * dt;
+    let val = gg;
+    if (burst) {
+      const [b0, b1, hz, a2] = burst;
+      const env = ti > b0 && ti < b1 ? Math.sin(Math.PI * (ti - b0) / (b1 - b0)) ** 2 : 0;
+      val += a2 * env * Math.sin(2 * Math.PI * hz * ti);
+    }
+    gy[i] = val + (r() - 0.5) * 2 * noise;
+  }
+  let thr = null;
+  if (throttle) {
+    const [lo, hi, v0, v1] = throttle;
+    thr = new Float64Array(n);
+    for (let i = 0; i < n; i++) thr[i] = t[i] >= lo && t[i] < hi ? v1 : v0;
+    const w = Math.round(0.04 / dt), sm = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      let s = 0, c = 0;
+      for (let k = -w; k <= w; k++) { const j = i + k; if (j >= 0 && j < n) { s += thr[j]; c++; } }
+      sm[i] = s / c;
+    }
+    thr = sm;
+  }
+  return { t, sp, gy, thr };
+}
+
+function stepTrace(seed, o = {}) {
+  const { wn = 2 * Math.PI * 14, zeta = 0.35, dur = 0.5, noise = 0.004, dt = 0.0005 } = o;
+  const r = rng(seed);
+  const n = Math.round(dur / dt);
+  const t = new Float64Array(n), sp = new Float64Array(n), gy = new Float64Array(n);
+  let gg = 0, v = 0;
+  for (let i = 0; i < n; i++) {
+    const ti = i * dt; t[i] = ti;
+    sp[i] = ti >= 0.05 ? 1 : 0;
+    const a = wn * wn * (sp[i] - gg) - 2 * zeta * wn * v;
+    v += a * dt; gg += v * dt;
+    gy[i] = gg + (r() - 0.5) * 2 * noise;
+  }
+  return { t, sp, gy };
+}
+
+const SIGNS = {
+  'P1-S03': { num: '01', word: 'PROPWASH', label: 'Sign 01 — Wobble in your own wash' },
+  'P1-S04': { num: '02', word: 'HOT MOTORS', label: 'Sign 02 — Hot motors on clean props' },
+  'P1-S05': { num: '03', word: 'BOUNCE-BACK', label: 'Sign 03 — Bounce-back at the end of a move' },
+  'P1-S06': { num: '04', word: 'LAG / OVERSHOOT', label: 'Sign 04 — A gyro that arrives late, or goes too far' },
+  'P1-S07': { num: '05', word: 'STICK TWITCH', label: 'Sign 05 — A twitch that follows your thumbs' },
+  'P1-S08': { num: '06', word: 'HIGH THROTTLE', label: 'Sign 06 — Shaking that arrives only with throttle' },
+};
+
+/* ------------------------------------------------------------------ */
+/* E mode (paper)                                                     */
+/* ------------------------------------------------------------------ */
+function paper() {
+  g.fillStyle = C.paper;
+  g.fillRect(0, 0, W, H);
+}
+
+function counter(num) {
+  const x = W - SAFE.x;
+  text(g, num, x, 132, { size: 40, weight: 600, color: C.accent, align: 'right', font: F.text });
+  const nw = g.measureText(num).width;
+  g.save(); g.globalAlpha = 1;
+  g.font = `600 40px ${F.text}`;
+  const nw2 = g.measureText(num).width;
+  g.restore();
+  text(g, '/ 06', x, 132, { size: 40, weight: 600, color: C.ink, align: 'right', font: F.text });
+  g.fillStyle = C.accent;
+  g.fillRect(x - 56, 148, 56, 5);
+}
+
+function eSignCard(scene, t, beatDur) {
+  paper();
+  const S = SIGNS[scene];
+  const size = S.word.length > 10 ? 300 : S.word.length > 8 ? 360 : 470;
+  // display word, cropped off the left edge on purpose
+  display(g, S.word, -20, 150 + size * 0.78, size, { alpha: 1 });
+
+  // cut-out quad, in front of the word
+  if (cutoutImg) {
+    const qw = 1020, qh = qw;
+    g.save();
+    g.globalAlpha = 1;
+    g.drawImage(cutoutImg, W - qw + 90, 300, qw, qh);
+    g.restore();
+  }
+
+  counter(S.num);
+
+  // label block
+  g.fillStyle = C.accent;
+  g.fillRect(SAFE.x, 806, 96, 6);
+  text(g, S.label, SAFE.x, 852, { size: 28, weight: 600, color: C.ink, track: 1.4, upper: true });
+
+  // mini chart, same synthetic data as the sign's F beat
+  miniChart(scene, 470, 792, 430, 186);
+}
+
+function miniChart(scene, x, y, w, h) {
+  const step = scene === 'P1-S06';
+  const d = step ? stepTrace(11, { wn: 2 * Math.PI * 14, zeta: 0.35 })
+    : rateTrace(6001, 1.6, { burst: [0.85, 1.35, 38, 85], throttle: [0.7, 1.3, 55, 8] });
+  const x0 = x + 40, x1 = x + w, y0 = y + 16, y1 = y + h - 34;
+  const xMax = step ? 0.5 : 1.6, yMin = step ? -0.1 : -120, yMax = step ? 1.45 : 380;
+  const px = (v) => x0 + (v / xMax) * (x1 - x0);
+  const py = (v) => y1 - ((v - yMin) / (yMax - yMin)) * (y1 - y0);
+
+  g.save();
+  g.strokeStyle = C.ink; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0, y1); g.lineTo(x1, y1); g.stroke();
+  g.restore();
+
+  series(g, d.t, d.sp, d.t.length, { x0, x1, y0, y1 }, { px, py }, { color: C.ink2, width: 1.6, dash: [7, 6] });
+  series(g, d.t, d.gy, d.t.length, { x0, x1, y0, y1 }, { px, py }, { color: C.ink, width: 2 });
+
+  text(g, step ? 'STEP RESPONSE' : 'ROLL RATE', x0, y + h - 8, { size: 16, weight: 600, color: C.ink2, track: 1.3 });
+  text(g, 'SYNTHETIC EXAMPLE', x1, y + h - 8, { size: 16, weight: 500, color: C.ink2, align: 'right' });
+}
+
+function eTitleCard(t) {
+  paper();
+  const rv = ease.out(clamp(t / 0.28));
+  g.save(); g.globalAlpha = rv;
+  display(g, '6 SIGNS', -20, 110 + 640 * 0.8, 640);
+  g.restore();
+
+  if (cutoutImg) g.drawImage(cutoutImg, W - 940, 280, 1000, 1000);
+
+  text(g, '6 Things · Episode 01', SAFE.x, 132, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
+  g.fillStyle = C.accent;
+  g.fillRect(SAFE.x, 792, 96, 6);
+  text(g, 'Your quad has a tuning problem,', SAFE.x, 858, { size: 44, weight: 600, color: C.ink });
+  text(g, 'not a hardware problem', SAFE.x, 908, { size: 44, weight: 600, color: C.ink });
+  text(g, 'What you feel  ·  What the log shows  ·  Why it points at tuning  ·  The counter-check',
+    SAFE.x, 968, { size: 24, weight: 500, color: C.ink2 });
+}
+
+function eBroken(t) {
+  paper();
+  display(g, 'BROKEN?', -20, 150 + 620 * 0.8, 620);
+  if (cutoutImg) g.drawImage(cutoutImg, W - 1000, 240, 1060, 1060);
+  g.fillStyle = C.accent; g.fillRect(SAFE.x, 806, 96, 6);
+  text(g, 'The obvious thought', SAFE.x, 852, { size: 28, weight: 600, color: C.ink, track: 1.4, upper: true });
+}
+
+function eSplit(t, beatDur) {
+  paper();
+  const mv = ease.io(clamp((t - beatDur * 0.32) / (beatDur * 0.28)));
+  const cols = [
+    ['THE', 'PART', 'Bent prop, rough bearing, a cracked plate', mv],
+    ['THE', 'TUNE', 'A control loop doing exactly what it was told', mv],
+  ];
+  cols.forEach(([a, b, sub, active], i) => {
+    const x = SAFE.x + i * 900;
+    display(g, a, x, 210 + 250 * 0.8, 250);
+    display(g, b, x, 210 + 250 * 0.8 + 200, 250);
+    text(g, sub, x, 640, { size: 30, weight: 500, color: C.ink2 });
+    const on = i === 1 ? clamp(active) : 1 - clamp(active);
+    g.fillStyle = C.accent;
+    g.save(); g.globalAlpha = 0.25 + 0.75 * on;
+    g.fillRect(x, 700, 96 + 300 * on, 6);
+    g.restore();
+  });
+}
+
+function eRule(t) {
+  paper();
+  const rv = ease.out(clamp(t / 0.4));
+  text(g, 'One rule', SAFE.x, 175, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
+  display(g, 'TWO KINDS', SAFE.x, 210 + 170 * 0.8, 170);
+  display(g, 'OF PROBLEM', SAFE.x, 210 + 170 * 0.8 + 145, 170);
+
+  const col = (x, head, items, accent) => {
+    g.save(); g.globalAlpha = rv;
+    g.fillStyle = accent ? C.accent : C.ink;
+    g.fillRect(x, 600, accent ? 400 : 800, accent ? 6 : 2);
+    text(g, head, x, 660, { size: 46, weight: 600, color: C.ink, upper: true });
+    items.forEach((s, i) => text(g, s, x, 716 + i * 48, { size: 30, weight: 500, color: C.ink2 }));
+    g.restore();
+  };
+  col(SAFE.x, 'FOLLOWS THE FLIGHT', ['Throttle', 'Stick speed', 'The kind of move'], false);
+  col(SAFE.x + 900, 'FOLLOWS THE PART', ['One frequency', 'One motor or one arm', 'Changes when you swap a part'], true);
+}
+
+function eCheck(displayWord, items, note) {
+  paper();
+  const lines = displayWord.split('\n');
+  lines.forEach((ln, i) => display(g, ln, -20, 160 + i * 210 + 200, 230));
+  g.fillStyle = C.accent;
+  g.fillRect(SAFE.x, 160 + lines.length * 205, 96, 6);
+
+  items.forEach((it, i) => {
+    const y = 250 + i * 92;
+    const x = 1080;
+    g.save();
+    g.strokeStyle = C.ink; g.lineWidth = 2;
+    g.strokeRect(x, y - 26, 34, 34);
+    g.beginPath(); g.moveTo(x + 7, y - 9); g.lineTo(x + 13, y - 3); g.lineTo(x + 26, y - 18); g.stroke();
+    g.restore();
+    text(g, it, x + 54, y, { size: 30, weight: 500, color: C.ink });
+  });
+  if (note) text(g, note, SAFE.x, 968, { size: 26, weight: 500, color: C.ink2 });
+}
+
+function eRecap(t, beatDur) {
+  paper();
+  text(g, 'Recap', SAFE.x, 132, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
+  display(g, 'SIX SIGNS', -20, 130 + 170 * 0.8, 170);
+
+  const cells = [
+    ['01', 'PROPWASH', 'Wobble in your own wash'],
+    ['02', 'HOT MOTORS', 'Hot on clean props'],
+    ['03', 'BOUNCE-BACK', 'Nod at the end of a move'],
+    ['04', 'LAG', 'Gyro late or past'],
+    ['05', 'TWITCH', 'Follows your thumbs'],
+    ['06', 'THROTTLE', 'Shaking up high'],
+  ];
+  const active = clamp(Math.floor((t / Math.max(0.001, beatDur)) * 6), 0, 5);
+  cells.forEach(([n, head, sub], i) => {
+    const x = SAFE.x + (i % 3) * 590;
+    const y = 340 + Math.floor(i / 3) * 250;
+    const on = i === active;
+    g.save(); g.globalAlpha = on ? 1 : 0.42;
+    g.fillStyle = C.ink; g.fillRect(x, y, 540, 2);
+    g.restore();
+    text(g, n, x, y + 52, { size: 40, weight: 600, color: on ? C.accent : C.ink, font: F.text });
+    display(g, head, x, y + 130, 70, { alpha: on ? 1 : 0.5 });
+    text(g, sub, x, y + 172, { size: 24, weight: 500, color: C.ink2, alpha: on ? 1 : 0.5 });
+  });
+}
+
+function eClosing(kind, t) {
+  paper();
+  if (kind === 'recap2') {
+    display(g, 'SIX', -20, 170 + 250 * 0.8, 250);
+    display(g, 'SIGNS', -20, 170 + 250 * 0.8 + 205, 250);
+    g.fillStyle = C.accent; g.fillRect(1000, 240, 96, 6);
+    text(g, 'Check the mechanics first.', 1000, 320, { size: 46, weight: 600, color: C.ink });
+    text(g, 'Then fly a log that can answer.', 1000, 382, { size: 46, weight: 600, color: C.ink });
+  } else if (kind === 'recap3') {
+    text(g, 'One rule to carry', SAFE.x, 200, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
+    display(g, 'TUNING FOLLOWS', -20, 250 + 150 * 0.8, 150);
+    display(g, 'THE FLIGHT', -20, 250 + 150 * 0.8 + 128, 150);
+    g.fillStyle = C.ink; g.fillRect(SAFE.x, 760, 1728, 2);
+    text(g, 'Hardware follows the part.', SAFE.x, 812, { size: 34, weight: 500, color: C.ink });
+  } else if (kind === 'end') {
+    display(g, '6', -20, 210 + 300 * 0.8, 300);
+    display(g, 'THINGS', -20, 210 + 300 * 0.8 + 250, 300);
+    const icon = new Image();
+    icon.src = '/SixThings_EP01/shared/brand/eqt-icon.svg';
+    if (icon.complete) g.drawImage(icon, 1080, 300, 130, 130);
+    text(g, 'EasyQuadTune', 1080, 490, { size: 38, weight: 600, color: C.ink });
+    text(g, 'Analyse your own log. Check the mechanics first.', 1080, 534, { size: 26, weight: 500, color: C.ink2 });
+    g.fillStyle = C.ink; g.fillRect(1080, 566, 700, 2);
+    text(g, 'All charts in this episode are synthetic examples.', 1080, 610, { size: 24, weight: 500, color: C.ink2 });
+  } else if (kind === 'hardware') {
+    text(g, 'The other side', SAFE.x, 175, { size: 28, weight: 600, color: C.ink2, track: 1.4, upper: true });
+    display(g, 'WHEN IT IS', -20, 210 + 260 * 0.8, 260);
+    display(g, 'HARDWARE', -20, 210 + 260 * 0.8 + 215, 260);
+    g.fillStyle = C.accent; g.fillRect(SAFE.x, 806, 96, 6);
+    text(g, 'A log is just as good at pointing at a part.', SAFE.x, 858, { size: 32, weight: 500, color: C.ink });
+  } else if (kind === 'flylog') {
+    display(g, 'FLY A', -20, 160 + 230 * 0.8, 230);
+    display(g, 'LOG', -20, 160 + 230 * 0.8 + 195, 230);
+    text(g, 'Clean air. Clear moves. Enough time.', SAFE.x, 700, { size: 30, weight: 500, color: C.ink2 });
+    g.fillStyle = C.ink; g.fillRect(1080, 240, 700, 2);
+    ['A low hover', 'A few sharp rolls', 'A punch-out', 'One slow descent']
+      .forEach((s, i) => text(g, s, 1080, 300 + i * 56, { size: 28, weight: 500, color: C.ink2 }));
+  } else if (kind === 'brand') {
+    const icon = new Image();
+    icon.src = '/SixThings_EP01/shared/brand/eqt-icon.svg';
+    if (icon.complete) g.drawImage(icon, SAFE.x, 220, 170, 170);
+    display(g, 'EASY', SAFE.x, 430 + 150 * 0.8, 150);
+    display(g, 'QUAD TUNE', SAFE.x, 430 + 150 * 0.8 + 128, 150);
+    g.fillStyle = C.accent; g.fillRect(1000, 300, 96, 6);
+    ['Frequency view', 'Step response', 'Motors and props']
+      .forEach((s, i) => text(g, s, 1000, 370 + i * 58, { size: 40, weight: 600, color: C.ink }));
+    text(g, 'Naming the physical cause still needs your hands on the quad.',
+      1000, 580, { size: 24, weight: 500, color: C.ink2 });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* F mode (studio + HUD)                                              */
+/* ------------------------------------------------------------------ */
+function panelBox(full) {
+  return full ? { x: 160, y: 140, w: 1600, h: 720 } : { x: 1120, y: 120, w: 700, h: 680 };
+}
+
+function caption(idx, txt, alpha = 1) {
+  if (alpha <= 0.02) return;
+  const x = 1120;
+  g.save(); g.globalAlpha = alpha;
+  g.fillStyle = 'rgba(93,107,117,0.55)';
+  g.fillRect(x, 836, 700, 1);
+  g.restore();
+  text(g, idx, x, 890, { size: 22, weight: 500, color: C.accent, font: F.mono, alpha });
+  text(g, txt, x + 46, 890, { size: 36, weight: 500, color: C.hudtext, alpha });
+}
+
+function chartPanel(box, title, d, o = {}) {
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, title, 'Synthetic example');
+
+  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 108, y1: y + h - 96 };
+  const xMax = o.xMax || 1.6, yMin = o.yMin ?? -120, yMax = o.yMax ?? 380;
+  const px = (v) => bx.x0 + (v / xMax) * (bx.x1 - bx.x0);
+  const py = (v) => bx.y1 - ((v - yMin) / (yMax - yMin)) * (bx.y1 - bx.y0);
+
+  if (o.band) {
+    g.save(); g.fillStyle = 'rgba(236,65,24,0.12)';
+    g.fillRect(px(o.band[0]), bx.y0 - 6, px(o.band[1]) - px(o.band[0]), bx.y1 - bx.y0 + 12);
+    g.restore();
+  }
+
+  const xTicks = [], yTicks = [];
+  for (let v = 0; v <= xMax + 1e-9; v += xMax / 4) xTicks.push([v.toFixed(1), px(v)]);
+  for (let v = Math.ceil(yMin / 200) * 200; v <= yMax; v += 200) yTicks.push([String(v), py(v)]);
+  axis(g, bx, { xTicks, yTicks, xLabel: 'time (s)', yLabel: 'rate (deg/s)', zeroY: py(0) });
+
+  const n = Math.max(2, Math.floor(d.t.length * clamp(o.progress ?? 1)));
+  series(g, d.t, d.sp, n, bx, { px, py }, { color: C.hudtext, width: 2, dash: [9, 7] });
+  series(g, d.t, d.gy, n, bx, { px, py }, { color: C.teal, width: 2.4 });
+
+  if (o.marker !== undefined && o.marker !== null) {
+    markerLine(g, px(o.marker), bx);
+  }
+  if (o.note) text(g, o.note, px(o.noteAt) + 12, py(o.noteY), { size: 19, weight: 600, color: C.accent });
+
+  if (o.throttle && d.thr) {
+    const ty0 = bx.y0 - 70, ty1 = bx.y0 - 30;
+    text(g, 'THROTTLE', bx.x0, ty0 - 8, { size: 17, weight: 500, color: C.huddim });
+    const tpy = (v) => ty1 - (v / 80) * (ty1 - ty0);
+    const pts = [];
+    for (let i = 0; i < d.t.length; i += 8) {
+      const qx = px(d.t[i]); if (qx > bx.x1) break;
+      pts.push([qx, tpy(d.thr[i])]);
+    }
+    g.save(); g.strokeStyle = C.huddim; g.lineWidth = 2; g.beginPath();
+    pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b)));
+    g.stroke(); g.restore();
+  }
+
+  legend(g, x + 22, y + h - 16, o.legend || [['sp', 'setpoint'], ['teal', 'gyro']]);
+}
+
+function stepPanel(box, progress) {
+  const d = stepTrace(9001, { wn: 2 * Math.PI * 14, zeta: 0.35 });
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, 'Estimated step response', 'Synthetic example');
+  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 108, y1: y + h - 96 };
+  const px = (v) => bx.x0 + (v / 0.5) * (bx.x1 - bx.x0);
+  const py = (v) => bx.y1 - (v / 1.5) * (bx.y1 - bx.y0);
+  const xTicks = [], yTicks = [];
+  for (let v = 0; v <= 0.5; v += 0.1) xTicks.push([v.toFixed(1), px(v)]);
+  for (let v = 0; v <= 1.5; v += 0.5) yTicks.push([v.toFixed(1), py(v)]);
+  axis(g, bx, { xTicks, yTicks, xLabel: 'time (s)', yLabel: 'response (normalised to 1.0)', zeroY: null });
+
+  g.save(); g.strokeStyle = C.hudline; g.lineWidth = 1; g.setLineDash([4, 6]);
+  g.beginPath(); g.moveTo(bx.x0, py(1)); g.lineTo(bx.x1, py(1)); g.stroke(); g.restore();
+
+  const n = Math.max(2, Math.floor(d.t.length * clamp(progress)));
+  series(g, d.t, d.sp, n, bx, { px, py }, { color: C.hudtext, width: 2, dash: [9, 7] });
+  series(g, d.t, d.gy, n, bx, { px, py }, { color: C.teal, width: 2.6 });
+
+  let peak = 0;
+  for (let i = 0; i < n; i++) if (d.gy[i] > d.gy[peak]) peak = i;
+  const cx = px(d.t[peak]), cy = py(d.gy[peak]);
+  g.save(); g.strokeStyle = C.accent; g.lineWidth = 2;
+  g.beginPath(); g.arc(cx, cy, 26, 0, 7); g.stroke(); g.restore();
+  text(g, 'overshoot', cx + 36, cy + 6, { size: 20, weight: 600, color: C.accent });
+
+  legend(g, x + 22, y + h - 16, [['sp', 'setpoint'], ['teal', 'measured']]);
+}
+
+function spectrumPanel(box, progress) {
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, 'Frequency content', 'Synthetic example');
+  const bx = { x0: x + 96, x1: x + w - 40, y0: y + 108, y1: y + h - 96 };
+  const r = rng(7001);
+  const n = 110;
+  g.save();
+  g.fillStyle = 'rgba(236,65,24,0.12)';
+  g.fillRect(bx.x0, bx.y0, (bx.x1 - bx.x0) * 0.25, bx.y1 - bx.y0);
+  g.restore();
+
+  const shown = Math.floor(n * clamp(progress));
+  for (let i = 0; i < shown; i++) {
+    const u = i / n;
+    const low = u < 0.25;
+    const bump = Math.exp(-Math.pow((i - 24) / 9, 2)) * 0.95;
+    const v = clamp(0.1 + 0.5 * Math.pow(1 - u, 1.6) + bump + (r() - 0.5) * 0.06, 0, 1.25);
+    const bw = (bx.x1 - bx.x0) / n - 5;
+    const px = bx.x0 + u * (bx.x1 - bx.x0);
+    const bh = (v / 1.3) * (bx.y1 - bx.y0);
+    g.save();
+    g.fillStyle = low ? C.accent : C.teal;
+    g.globalAlpha = low ? 0.85 : 0.5;
+    g.fillRect(px, bx.y1 - bh, bw, bh);
+    g.restore();
+  }
+  g.save(); g.strokeStyle = C.hudline; g.lineWidth = 1.2;
+  g.beginPath(); g.moveTo(bx.x0, bx.y1); g.lineTo(bx.x1, bx.y1);
+  g.moveTo(bx.x0, bx.y1); g.lineTo(bx.x0, bx.y0); g.stroke(); g.restore();
+
+  text(g, 'below ~100 Hz (typical five-inch)', bx.x0 + 8, bx.y1 + 34, { size: 20, weight: 600, color: C.accent });
+  text(g, 'motor and prop band', bx.x1, bx.y1 + 34, { size: 18, weight: 500, color: C.huddim, align: 'right' });
+  text(g, 'FREQUENCY (Hz)', (bx.x0 + bx.x1) / 2, bx.y1 + 66, { size: 18, weight: 600, color: C.huddim, track: 1.6, align: 'center', upper: true });
+  g.save(); g.translate(bx.x0 - 46, (bx.y0 + bx.y1) / 2); g.rotate(-Math.PI / 2);
+  text(g, 'RELATIVE AMPLITUDE', 0, 0, { size: 18, weight: 600, color: C.huddim, track: 1.6, align: 'center', upper: true });
+  g.restore();
+
+  legend(g, x + 22, y + h - 16, [['teal', 'measured'], ['acc', 'problem band']]);
+}
+
+function barsPanel(box, progress) {
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, 'Motor output', 'Synthetic example');
+  const vals = [0.42, 0.99, 0.55, 0.63].map((v) => v * clamp(progress * 1.7));
+  const labels = ['M1', 'M2', 'M3', 'M4'];
+  const baseY = y + h - 110, topY = y + 130;
+  const bw = 74, gap = (w - 120 - bw * 4) / 3;
+  vals.forEach((v, i) => {
+    const bx = x + 84 + i * (bw + gap);
+    const bh = v * (baseY - topY);
+    const over = v > 0.95;
+    g.save();
+    g.fillStyle = over ? C.accent : C.hudline;
+    g.globalAlpha = over ? 0.9 : 0.55;
+    g.fillRect(bx, baseY - bh, bw, bh);
+    g.restore();
+    text(g, labels[i], bx + bw / 2, baseY + 34, { size: 18, weight: 500, color: over ? C.accent : C.huddim, font: F.mono, align: 'center' });
+  });
+  g.save(); g.strokeStyle = C.hudline; g.lineWidth = 1.2;
+  g.beginPath(); g.moveTo(x + 60, baseY); g.lineTo(x + w - 40, baseY); g.stroke();
+  g.strokeStyle = C.accent; g.setLineDash([4, 6]);
+  g.beginPath(); g.moveTo(x + 60, baseY - 0.95 * (baseY - topY)); g.lineTo(x + w - 40, baseY - 0.95 * (baseY - topY)); g.stroke();
+  g.restore();
+  text(g, 'limit', x + w - 40, baseY - 0.95 * (baseY - topY) - 10, { size: 17, weight: 500, color: C.accent, align: 'right' });
+}
+
+function loopPanel(box, t, beatDur) {
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, 'Control loop', null);
+  const cx = x + w / 2, cy = y + h / 2 - 20, r = 140;
+  const pulse = clamp((t / Math.max(0.2, beatDur / 2)) % 1);
+  const nodes = [['STICK', -90], ['PID', 0], ['MOTORS', 90], ['GYRO', 180]];
+  g.save(); g.strokeStyle = C.hudline; g.lineWidth = 1; g.globalAlpha = 0.45;
+  g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke(); g.restore();
+
+  nodes.forEach(([n, deg], i) => {
+    const a = (deg * Math.PI) / 180;
+    const nx = cx + Math.cos(a) * r, ny = cy + Math.sin(a) * r;
+    const on = i === Math.floor(pulse * 4);
+    g.save();
+    g.strokeStyle = on ? C.accent : C.hudline;
+    g.lineWidth = on ? 2.4 : 1.2;
+    g.beginPath(); g.arc(nx, ny, 46, 0, 7); g.stroke();
+    g.restore();
+    text(g, n, nx, ny + 6, { size: 19, weight: 600, color: on ? C.accent : C.hudtext, align: 'center' });
+  });
+  text(g, 'error', cx, cy + 6, { size: 18, weight: 500, color: C.huddim, align: 'center' });
+  legend(g, x + 22, y + h - 16, [['teal', 'measured'], ['sp', 'commanded']]);
+}
+
+function chainPanel(box, progress) {
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, 'Signal chain', null);
+  const steps = ['RC input', 'Feedforward', 'PID', 'Motors', 'Gyro'];
+  const active = clamp(Math.floor(progress * steps.length), 0, steps.length - 1);
+  steps.forEach((s, i) => {
+    const by = y + 90 + i * 96;
+    const on = i === active;
+    g.save();
+    g.strokeStyle = on ? C.accent : C.hudline;
+    g.lineWidth = on ? 2.2 : 1.1;
+    g.strokeRect(x + 120, by, 400, 62);
+    g.restore();
+    text(g, s, x + 320, by + 39, { size: 21, weight: 600, color: on ? C.accent : C.hudtext, track: 1.4, align: 'center', upper: true });
+    if (i < steps.length - 1) {
+      g.save(); g.strokeStyle = C.hudline; g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(x + 320, by + 62); g.lineTo(x + 320, by + 96); g.stroke();
+      g.restore();
+    }
+  });
+}
+
+function threeMini(box, progress) {
+  const { x, y, w, h } = box;
+  hudPanel(g, x, y, w, h, 'Three gaps', 'Synthetic example');
+  const kinds = [
+    { wn: 2 * Math.PI * 18, zeta: 0.12, label: 'rings' },
+    { wn: 2 * Math.PI * 4.2, zeta: 0.95, label: 'lingers' },
+    { wn: 2 * Math.PI * 12, zeta: 0.5, label: 'throttle-dependent' },
+  ];
+  const active = clamp(Math.floor(progress * 3), 0, 2);
+  kinds.forEach((k, i) => {
+    const cw = 490, ch = 520;
+    const cx = x + 40 + i * 512, cy = y + 96;
+    const d = stepTrace(300 + i, { wn: k.wn, zeta: k.zeta });
+    const on = i === active;
+    g.save();
+    g.strokeStyle = on ? C.accent : C.hudline;
+    g.lineWidth = on ? 2 : 1.1;
+    g.strokeRect(cx, cy, cw, ch);
+    g.restore();
+    const bx = { x0: cx + 40, x1: cx + cw - 26, y0: cy + 40, y1: cy + ch - 60 };
+    const px = (v) => bx.x0 + (v / 0.5) * (bx.x1 - bx.x0);
+    const py = (v) => bx.y1 - ((v + 0.1) / 1.55) * (bx.y1 - bx.y0);
+    series(g, d.t, d.sp, d.t.length, bx, { px, py }, { color: C.hudtext, width: 1.8, dash: [9, 7], alpha: on ? 1 : 0.5 });
+    series(g, d.t, d.gy, d.t.length, bx, { px, py }, { color: on ? C.accent : C.teal, width: 2.4, alpha: on ? 1 : 0.45 });
+    text(g, k.label, cx + 14, cy + ch - 22, { size: 19, weight: 600, color: on ? C.accent : C.huddim });
+  });
+  legend(g, x + 22, y + h - 16, [['sp', 'setpoint'], ['teal', 'gyro'], ['acc', 'speaking now']]);
+}
+
+/* ------------------------------------------------------------------ */
+/* beat table                                                         */
+/* ------------------------------------------------------------------ */
+const BEATS = {
+  'P1-S01': [
+    { m: 'F', cam: 'drop', k: 'plain', cap: ['01', 'It wobbles, then it settles'] },
+    { m: 'F', cam: 'macro', k: 'macro', cap: ['02', 'The bell comes down warm'] },
+    { m: 'E', k: 'broken' },
+    { m: 'E', k: 'split' },
+    { m: 'F', cam: 'wide', k: 'chart', cap: ['05', 'Two lines and what the motors did'] },
+    { m: 'E', k: 'title' },
+  ],
+  'P1-S02': [
+    { m: 'F', cam: 'wide', k: 'chart', cap: ['01', 'Setpoint is what you asked for'] },
+    { m: 'F', cam: 'wide', k: 'loop', cap: ['02', 'The error is the whole story'] },
+    { m: 'F', cam: 'hero', k: 'chart', cap: ['03', 'Real motors take time'] },
+    { m: 'F', cam: 'dim', k: 'mini3', cap: ['04', 'Each gap tells a different story'] },
+    { m: 'E', k: 'rule' },
+    { m: 'E', k: 'mechanics' },
+  ],
+  'P1-S03': [
+    { m: 'E', k: 'sign' },
+    { m: 'F', cam: 'low', k: 'chart', cap: ['01', 'Reverse flow, then thrust returns'] },
+    { m: 'F', cam: 'wide', k: 'chart', cap: ['02', 'It begins with the wash'] },
+    { m: 'F', cam: 'dim', k: 'spectrum', full: true, cap: ['03', 'Low, well under the prop band'] },
+    { m: 'F', cam: 'macro', k: 'bars', cap: ['04', 'Settings decide how well it fights'] },
+    { m: 'E', k: 'check', display: 'FIX THESE\nFIRST', items: ['Loose screws', 'Cracked frame plate', 'Rough bearings', 'Loose motor bell', 'Damaged props'] },
+  ],
+  'P1-S04': [
+    { m: 'E', k: 'sign' },
+    { m: 'F', cam: 'top', k: 'plain', cap: ['01', 'Fresh props, hot bells'] },
+    { m: 'F', cam: 'hero', k: 'chain', cap: ['02', 'D turns noise into commands'] },
+    { m: 'F', cam: 'dim', k: 'chart', full: true, cap: ['03', 'A thick fuzzy band in calm cruise'] },
+    { m: 'F', cam: 'dim', k: 'spectrum', full: true, cap: ['04', 'Noise climbs with throttle'] },
+    { m: 'F', cam: 'wide', k: 'bars', cap: ['05', 'One bell alone points at the part'] },
+  ],
+  'P1-S05': [
+    { m: 'E', k: 'sign' },
+    { m: 'F', cam: 'hero', k: 'plain', cap: ['01', 'A small nod at the end'] },
+    { m: 'F', cam: 'dim', k: 'step', full: true, cap: ['02', 'Fast rings: P and D'] },
+    { m: 'F', cam: 'dim', k: 'chart', full: true, cap: ['03', 'One slow return: I-term'] },
+    { m: 'F', cam: 'wide', k: 'chain', cap: ['04', 'It accumulates, then discharges'] },
+    { m: 'F', cam: 'wide', k: 'bars', cap: ['05', 'Or the motors are already at the limit'] },
+  ],
+  'P1-S06': [
+    { m: 'E', k: 'sign' },
+    { m: 'F', cam: 'hero', k: 'plain', cap: ['01', 'Mushy, then snappy'] },
+    { m: 'F', cam: 'dim', k: 'step', full: true, cap: ['02', 'Slow rise is lag'] },
+    { m: 'F', cam: 'dim', k: 'step', full: true, cap: ['03', 'Past the target is overshoot'] },
+    { m: 'F', cam: 'wide', k: 'chart', cap: ['04', 'One lever at a time'] },
+    { m: 'F', cam: 'wide', k: 'bars', cap: ['05', 'Or a physical ceiling'] },
+  ],
+  'P1-S07': [
+    { m: 'E', k: 'sign' },
+    { m: 'F', cam: 'hero', k: 'plain', cap: ['01', 'Calm sticks, calm horizon'] },
+    { m: 'F', cam: 'wide', k: 'chain', cap: ['02', 'A dropped packet shows up downstream'] },
+    { m: 'F', cam: 'dim', k: 'chart', full: true, cap: ['03', 'Spikes that follow the stick'] },
+    { m: 'E', k: 'check', display: 'TWO\nTESTS', items: ['Feedforward = 0 test flight', 'Temporary wide deadband', 'No change means it is not the cause'] },
+    { m: 'F', cam: 'macro', k: 'bars', cap: ['04', 'Twitch with the sticks centred is hardware'] },
+  ],
+  'P1-S08': [
+    { m: 'E', k: 'sign' },
+    { m: 'F', cam: 'low', k: 'plain', cap: ['01', 'Smooth until you punch it'] },
+    { m: 'F', cam: 'wide', k: 'chart', cap: ['02', 'Only in the top of the throttle'] },
+    { m: 'F', cam: 'dim', k: 'chart', full: true, cap: ['03', 'Gain comes down as throttle rises'] },
+    { m: 'F', cam: 'hero', k: 'bars', cap: ['04', 'The same input, two responses'] },
+    { m: 'F', cam: 'wide', k: 'spectrum', cap: ['05', 'Or one frequency that does not move'] },
+  ],
+  'P1-S09': [
+    { m: 'E', k: 'hardware' },
+    { m: 'F', cam: 'hero', k: 'chart', cap: ['01', 'The log points at a part'] },
+    { m: 'F', cam: 'dim', k: 'bars', cap: ['02', 'One motor, one arm, one axis'] },
+    { m: 'F', cam: 'dim', k: 'spectrum', full: true, cap: ['03', 'A tone that holds its frequency'] },
+    { m: 'F', cam: 'wide', k: 'spectrum', cap: ['04', 'A raised floor across the spectrum'] },
+    { m: 'F', cam: 'macro', k: 'plain', cap: ['05', 'Many small sources at once'] },
+  ],
+  'P1-S10': [
+    { m: 'E', k: 'flylog' },
+    { m: 'F', cam: 'wide', k: 'chart', cap: ['01', 'A log that can answer'] },
+    { m: 'F', cam: 'wide', k: 'chain', cap: ['02', 'Record the channels you will read'] },
+    { m: 'F', cam: 'dim', k: 'chart', full: true, cap: ['03', 'Moves you can compare'] },
+    { m: 'F', cam: 'hero', k: 'plain', cap: ['04', 'Clean air, clear manoeuvres'] },
+    { m: 'E', k: 'brand' },
+  ],
+  'P1-S11': [
+    { m: 'E', k: 'recap' },
+    { m: 'E', k: 'recap' },
+    { m: 'E', k: 'recap' },
+    { m: 'E', k: 'recap2' },
+    { m: 'E', k: 'recap3' },
+    { m: 'E', k: 'end' },
+  ],
+};
+
+/* ------------------------------------------------------------------ */
+/* frame                                                              */
+/* ------------------------------------------------------------------ */
+let ready = false;
+
+export async function renderFrame(spec) {
+  const { scene: sceneId, beatIndex, tLocal, beatDur, totalT } = spec;
+
+  if (!ready) {
+    await loadFonts('/SixThings_EP01/style/fonts');
+    makeCutout();
+    ready = true;
+  }
+
+  const list = BEATS[sceneId] || BEATS['P1-S01'];
+  const b = list[clamp(beatIndex, 0, list.length - 1)];
+  const u = clamp(tLocal / Math.max(0.001, beatDur));
+
+  beginFrame();
+
+  if (b.m === 'E') {
+    g.clearRect(0, 0, W, H);
+    switch (b.k) {
+      case 'sign': eSignCard(sceneId, tLocal, beatDur); break;
+      case 'title': eTitleCard(tLocal); break;
+      case 'broken': eBroken(tLocal); break;
+      case 'split': eSplit(tLocal, beatDur); break;
+      case 'rule': eRule(tLocal); break;
+      case 'mechanics':
+        eCheck('MECHANICS\nFIRST', ['Screws and standoffs', 'Props: cracks and balance', 'Flight controller mount', 'Motor bells and bearings'],
+          'Tuning a quad that is physically damaged only hides the damage.');
+        break;
+      case 'hardware': eClosing('hardware', tLocal); break;
+      case 'flylog': eClosing('flylog', tLocal); break;
+      case 'brand': eClosing('brand', tLocal); break;
+      case 'recap': eRecap(tLocal, beatDur); break;
+      case 'recap2': eClosing('recap2', tLocal); break;
+      case 'recap3': eClosing('recap3', tLocal); break;
+      case 'end': eClosing('end', tLocal); break;
+      case 'check': eCheck(b.display, b.items, b.note); break;
+      default: eSignCard(sceneId, tLocal, beatDur);
+    }
+    endFrame(totalT);
+    return true;
+  }
+
+  /* F mode: 3D first, then the 2D layer on top */
+  setCamera(b.cam, tLocal, u);
+  Q.rotation.set(Math.sin(tLocal * 1.1) * 0.03, 0, Math.sin(tLocal * 1.4) * 0.012);
+  Q.position.y = b.cam === 'drop' ? lerp(120, 0, ease.out(clamp(tLocal / 2.4))) : 0;
+  tree.visible = b.cam === 'drop';
+
+  const spin = 18 + 26 * (0.4 + 0.6 * Math.sin(tLocal * 0.7) * 0.5 + 0.5);
+  motors.forEach((m, i) => {
+    m.prop.rotation.z = m.prop.userData.dir * tLocal * spin;
+    m.glow.material.opacity = 0.10 + 0.16 * (0.5 + 0.5 * Math.sin(tLocal * 1.3 + i));
+  });
+
+  renderer.render(scene, camera);
+
+  g.clearRect(0, 0, W, H);
+  // studio falloff and framing
+  vignette(g);
+  brackets(g, 0.35);
+  panelGradient(g);
+
+  const full = !!b.full;
+  const box = panelBox(full);
+
+  switch (b.k) {
+    case 'chart': {
+      const d = rateTrace(6001 + (sceneId.charCodeAt(5) || 0), 1.6, {
+        burst: [0.85, 1.35, 38, 85],
+        throttle: sceneId === 'P1-S03' ? [0.7, 1.3, 55, 8] : null,
+      });
+      chartPanel(box, sceneId === 'P1-S03' ? 'Roll setpoint vs gyro' : 'Rate response', d, {
+        progress: clamp(tLocal / (beatDur * 0.55)),
+        band: sceneId === 'P1-S03' ? [0.85, 1.35] : null,
+        marker: sceneId === 'P1-S03' ? 0.85 : null,
+        note: sceneId === 'P1-S03' ? 'wobble starts in the wash' : null,
+        noteAt: 0.9, noteY: 60,
+        throttle: sceneId === 'P1-S03',
+      });
+      break;
+    }
+    case 'step': stepPanel(box, clamp(tLocal / (beatDur * 0.6))); break;
+    case 'spectrum': spectrumPanel(box, clamp(tLocal / (beatDur * 0.55))); break;
+    case 'bars': barsPanel(box, clamp(tLocal / (beatDur * 0.7))); break;
+    case 'loop': loopPanel(box, tLocal, beatDur); break;
+    case 'chain': chainPanel(box, clamp(tLocal / (beatDur * 0.8))); break;
+    case 'mini3': threeMini(box, clamp(tLocal / (beatDur * 0.8))); break;
+    case 'macro': {
+      hudPanel(g, box.x, box.y, box.w, box.h, 'Motor bell · heat', null);
+      const p = clamp(tLocal / (beatDur * 0.6));
+      text(g, 'warm to the touch', box.x + 40, box.y + 140, { size: 24, weight: 500, color: C.huddim });
+      const bx = { x0: box.x + 60, x1: box.x + box.w - 40, y0: box.y + 260, y1: box.y + 520 };
+      const px = (v) => bx.x0 + (v / 1.6) * (bx.x1 - bx.x0);
+      const py = (v) => (bx.y0 + bx.y1) / 2 - v * 1.1;
+      const d = rateTrace(77, 1.6, { burst: [0.9, 1.25, 34, 60] });
+      const n = Math.max(2, Math.floor(d.t.length * p));
+      series(g, d.t, d.sp, n, bx, { px, py }, { color: C.hudtext, width: 2, dash: [9, 7] });
+      series(g, d.t, d.gy, n, bx, { px, py }, { color: C.teal, width: 2.4 });
+      g.save(); g.strokeStyle = C.hudline; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(bx.x0, (bx.y0 + bx.y1) / 2); g.lineTo(bx.x1, (bx.y0 + bx.y1) / 2); g.stroke(); g.restore();
+      text(g, 'nose overshoots, then returns', box.x + 40, box.y + box.h - 60, { size: 20, weight: 500, color: C.huddim });
+      legend(g, box.x + 22, box.y + box.h - 16, [['sp', 'setpoint'], ['teal', 'gyro']]);
+      break;
+    }
+    default: {
+      // plain studio beat: a lone readout, so the quad carries the frame
+      const x = 1120;
+      hudPanel(g, x, 640, 700, 160, 'Studio', null);
+      text(g, 'five-inch quad · one cool key light', x + 24, 740, { size: 22, weight: 500, color: C.huddim });
+    }
+  }
+
+  if (b.cap) caption(b.cap[0], b.cap[1], ease.out(clamp(tLocal / 0.35)));
+
+  endFrame(totalT);
+  return true;
+}
+
+window.renderFrame = renderFrame;
+window.__ready = true;

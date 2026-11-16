@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>6 Things EP01 — renderer</title>
+<style>
+  @font-face { font-family:'BC'; src:url('../../SixThings_EP01/style/fonts/BarlowCondensed-ExtraBold.ttf'); font-weight:800; font-display:block; }
+  @font-face { font-family:'BC'; src:url('../../SixThings_EP01/style/fonts/BarlowCondensed-Black.ttf'); font-weight:900; font-display:block; }
+  @font-face { font-family:'IT'; src:url('../../SixThings_EP01/style/fonts/InterTight-VariableFont_wght.ttf'); font-weight:100 900; font-display:block; }
+  @font-face { font-family:'JM'; src:url('../../SixThings_EP01/style/fonts/JetBrainsMono-VariableFont_wght.ttf'); font-weight:100 800; font-display:block; }
+  html,body { margin:0; padding:0; width:1920px; height:1080px; overflow:hidden; background:#0B0E12; }
+  canvas { position:absolute; left:0; top:0; width:1920px; height:1080px; display:block; }
+  #gl { z-index:1; }
+  #g  { z-index:2; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "../../build/node_modules/three/build/three.module.js" } }
+</script>
+</head>
+<body>
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <canvas id="g"  width="1920" height="1080"></canvas>
+  <script type="module" src="./main6.js"></script>
+</body>
+</html>
