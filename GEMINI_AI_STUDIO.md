@@ -1,56 +1,131 @@
-# Brug repoet i Google AI Studio
+# Brug repoet og filmen i Google AI Studio
 
-Repoet er **offentligt**, så du kan nøjes med at give Gemini linket og sige
-"lav den her episode". Det behøver ikke at uploade filer.
+Status: episoden er **bygget**. Filmen ligger i repoet, og der er tre ting, det giver
+mening at spørge AI Studio om. Vælg efter hvad du vil opnå.
 
-## Sådan gør du
+Repo: https://github.com/Madeindk/SixThings_EP01_TuningNotHardware_DeepSeek
+Gren: `EP01`
 
-1. Opret en ny chat i [Google AI Studio](https://aistudio.google.com) med en
-   Gemini-model i Pro-klassen (lang kontekst).
-2. Skriv din instruks og indsæt linket:
+---
+
+## 1. Få filmen gennemgået (uploadvideo)
+
+AI Studio kan se video, men den skal **uploades som fil** — et GitHub-link giver kun
+tekst, ikke afspilning. Filen er 64,9 MB:
+
+```
+SixThings_EP01/EP01/out/SixThings_EP01_TuningNotHardware.mp4
+```
+
+Upload den og indsæt:
+
+```text
+Du får en færdig 12:45 lang forklarende video om drone-tuning: "6 Signs Your Quad
+Has a Tuning Problem, Not a Hardware Problem".
+
+Jeg vil have en teknisk og visuel gennemgang, ikke ros. Vær konkret og brug
+tidsstempler.
+
+1. Er der steder hvor noget visuelt er i konflikt med det der bliver sagt — fx et
+   diagram der viser noget andet end ordene, eller en markering der peger forkert?
+2. Er der frames hvor tekst overlapper, er skåret af, eller er for lille til at
+   læses på 1080p?
+3. Skifter billedet mellem to visuelle modi (råhvidt papir med store typer, og
+   mørkt studie med HUD-paneler)? Er hvert skift på en sætningsgrænse, eller sker
+   der skift midt i en sætning?
+4. Er der øjeblikke hvor der ikke sker noget i billedet i mere end 5 sekunder,
+   mens der bliver talt?
+5. Lyder fortællestemmen ens hele vejen igennem, eller falder kvaliteten i
+   bestemte afsnit?
+
+Svar som en nummereret liste med tidsstempel, hvad du ser, og hvad der er galt.
+Afslut med de tre vigtigste ting jeg bør rette.
+```
+
+Kapitler, hvis du vil pege på et bestemt afsnit:
+
+| Tid | Afsnit |
+|---|---|
+| 0:00 | Intro |
+| 0:50 | Setpoint, gyro og én regel |
+| 1:47 | Tegn 1: propwash |
+| 3:13 | Tegn 2: varme motorer |
+| 4:36 | Tegn 3: bounce-back |
+| 6:00 | Tegn 4: gyro sent eller for langt |
+| 7:16 | Tegn 5: twitch efter tommelfingrene |
+| 8:30 | Tegn 6: rysten ved høj gas |
+| 9:46 | Når det virkelig er hardware |
+| 11:08 | Sådan flyver du en log der kan svare |
+| 12:09 | Recap |
+
+---
+
+## 2. Få repos og dokumenter gennemgået (link, ingen upload)
+
+Her er linket nok, fordi det hele er tekst.
+
+```text
+Her er et repo: https://github.com/Madeindk/SixThings_EP01_TuningNotHardware_DeepSeek
+(gren EP01)
+
+Det er produktionsmaterialet til én episode af en serie. Episoden er allerede
+bygget og ligger som MP4 i EP01/out/. Jeg vil ikke have den bygget igen.
+
+Læs README.md først — den er indgangen og siger hvad der gælder nu.
+
+Kig derefter efter modsigelser på tværs af dokumenterne:
+- Står der stadig noget om stemmen bm_daniel, Kokoro eller en 14:35-længde, som
+  ikke længere er sandt?
+- Passer kapiteltiderne i RELEASE_DRAFTS.md med timing-arket?
+- Passer sceneindekset i scene-index.json med timing-arket?
+- Refererer nogen dokument til filer der ikke findes i repoet?
+
+Svar som en liste: fil, linje/citat, hvad der er forkert, og hvad der burde stå.
+Hvis alt stemmer, så sig det tydeligt i stedet for at opfinde problemer.
+```
+
+---
+
+## 3. Byg videre på serien
+
+Når episode 2 findes i samme stil, kan du give den samme brief som episode 1 fik.
+Brug filen `SixThings_EP01/EP01/START_EP01.txt` som skabelon — den indeholder de
+regler, der gjaldt, og kan kopieres til næste episode.
 
 ```text
 Her er repoet: https://github.com/Madeindk/SixThings_EP01_TuningNotHardware_DeepSeek
+(gren EP01)
 
-Lav episode 1 "6 Signs Your Quad Has a Tuning Problem, Not a Hardware Problem"
-af serien 6 Things.
+Læs README.md, derefter SixThings_EP01/EP01/START_EP01.txt og
+SixThings_EP01/style/STYLE_6THINGS.md.
 
-Start med at læse README.md i roden. Den er indgangen og fortæller, hvilke
-filer du skal læse i hvilken rækkefølge, og hvilke hard rules der gælder.
-Følg den. Sig derefter kort, hvad du har læst, og hvad du har forstået omkring
-stil-låsen, de faceless-regler og forbuddet mod kilder på skærmen.
-
-Arbejd derefter i shot-ordenen fra PROMPT_EP01.md, én scene ad gangen, og stop
-til gennemsyn efter scene 1.
+START_EP01.txt er reglerne for episode 1. Brug dem som skabelon for episode 2,
+men ret dem hvor de er episodespecifikke (sceneantal, emne, lydfilnavne).
 
 Du kan ikke køre Python, ffmpeg eller lokale builds. Når et trin kræver en
-kommando, så skriv kommandoen til mig i stedet for at lade som om du har kørt
-den. Og du må ikke påstå at have hørt lyd eller set et render.
+kommando, skriv kommandoen til mig i stedet for at lade som om du har kørt den.
+Påstå ikke at have hørt lyd eller set et render.
 ```
 
-3. Gemini henter selv filerne via linket. Hvis den ikke kan læse dem, så brug
-   **raw-links** i stedet, fx:
+---
 
-```text
-https://raw.githubusercontent.com/Madeindk/SixThings_EP01_TuningNotHardware_DeepSeek/EP01/README.md
-```
+## Hvad AI Studio kan og ikke kan
 
-## Hvad der er vigtigt at vide
+| Kan | Kan ikke |
+|---|---|
+| Læse alle tekstfiler via et offentligt link | Afspille en video fra et GitHub-link — upload filen |
+| Se uploadet video, billeder og lyd | Køre Python, ffmpeg eller `build/render.js` |
+| Transskribere og tidfæste tale | Klone en stemme (Google afviser syntetisk tale) |
+| Foreslå rettelser i kode og tekst | Se hvad der sker i Cursor eller på din maskine |
 
-- **Grenen hedder `EP01`.** Hovedgrenen er ikke sat til `main`, så brug
-  `EP01` i alle links.
-- **Lyden ligger ikke i repoet.** Det er med vilje: rendered tale er en afledt
-  fil og genskabes med `SixThings_EP01/shared/voice/render_narration_tts.py`.
-  Til klipning er `audio/sixthings_ep01_p1_timing.csv` nok — den giver start,
-  slut og varighed for hver scene.
-- **Stemmen er Andrew**, ikke bm_daniel. Hvis Gemini læser et dokument, der
-  stadig siger bm_daniel eller Kokoro, er det historisk materiale — README.md
-  siger det, der gælder nu.
-- **AI Studio kan ikke klone stemmen.** Googles Voice Replication afviser
-  syntetisk tale. Klonen køres lokalt med Chatterbox og kræver din PC.
-- **Repoet er offentligt.** Alt, hvad der lægges i det, kan læses af alle.
-  Materialet her indeholder ingen hemmeligheder.
+Vil du have filmen ændret, skal ændringen ende som en kodeændring i `build/`, og
+så skal `node build/render.js --fps 30 --encode` og `node build/assemble.js`
+køres lokalt. Se `BUILD.md`.
 
-## Om de to filer der ikke er læsestof
+## Praktisk
 
+- Vælg en model i Pro-klassen; video kræver lang kontekst.
+- Er upload-grænsen et problem, så upload i stedet et af de små
+  scene-MP3-filer fra `SixThings_EP01/EP01/audio/andrew/` og spørg kun om lyden.
 - `.secrets.baseline` og `.semgrepignore` er sikkerhedsværktøj. Ignorér dem.
+- Repoet er offentligt. Alt i det kan læses af alle.
