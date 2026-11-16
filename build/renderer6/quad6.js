@@ -137,7 +137,7 @@ export function createQuad(renderer) {
     }
   }
 
-  /* --- plates: d.js proportions --- */
+  /* --- plates: real AIO board dimensions --- */
   {
     const bot = new THREE.Mesh(new THREE.BoxGeometry(46, 4, 96), carbonPlate);
     bot.castShadow = true;
@@ -154,37 +154,52 @@ export function createQuad(renderer) {
       Q.add(so);
     }
 
-    // ESC board, with visible MOSFETs — the part that heats up
-    const esc = new THREE.Mesh(new THREE.BoxGeometry(38, 1.6, 40), pcb);
-    esc.position.y = 9;
+    /* The stack is a 25.5 x 25.5 AIO flight controller: measured envelope
+     * 30.0 x 29.0 x 7.3 mm, sitting on a 20 x 20 ESC-style board of
+     * 32.0 x 31.0 x 3.6 mm. Both are real dimensions read out of the supplied
+     * STEP files; the geometry itself is modelled, not copied. */
+    const esc = new THREE.Mesh(new THREE.BoxGeometry(31, 3.6, 30), pcb);
+    esc.position.y = 9.8;
     esc.castShadow = true;
     Q.add(esc);
     for (let i = 0; i < 4; i++) {
       const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
       const mos = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.3, 6.4), chipMat);
-      mos.position.set(Math.cos(a) * 13, 10.2, Math.sin(a) * 15.5);
+      mos.position.set(Math.cos(a) * 11, 11.9, Math.sin(a) * 12.4);
       mos.rotation.y = -a;
       Q.add(mos);
     }
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 12, 18), capMat);
-    cap.position.set(-13, 15.6, 16);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 11, 18), capMat);
+    cap.position.set(-12, 17, 14);
     cap.rotation.x = 0.16;
     Q.add(cap);
+    const capTop = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 1.1, 18), metal);
+    capTop.position.set(-12, 22.6, 14.9);
+    capTop.rotation.x = 0.16;
+    Q.add(capTop);
 
-    // FC board — d.js has it as a clearcoated plate with an MCU
-    const fc = new THREE.Mesh(new THREE.BoxGeometry(36, 1.6, 36), pcb);
-    fc.position.y = 20.5;
-    fc.castShadow = true;
-    Q.add(fc);
-    const mcu = new THREE.Mesh(new THREE.BoxGeometry(10, 1.4, 10), chipMat);
-    mcu.position.y = 21.7; mcu.rotation.y = Math.PI / 4; Q.add(mcu);
+    // AIO: one board carrying the gyro, the MCU and the pads
+    const aio = new THREE.Mesh(new THREE.BoxGeometry(29, 7.3, 28), pcb);
+    aio.position.y = 20.4;
+    aio.castShadow = true;
+    Q.add(aio);
+    const mcu = new THREE.Mesh(new THREE.BoxGeometry(9.5, 1.4, 9.5), chipMat);
+    mcu.position.y = 24.7; mcu.rotation.y = Math.PI / 4; Q.add(mcu);
     // the gyro: a small metal can, and sign four is about this chip
     const gyro = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.3, 4.6), metal);
-    gyro.position.set(9, 21.6, 9); Q.add(gyro);
+    gyro.position.set(8, 24.6, 8); Q.add(gyro);
     const usb = new THREE.Mesh(new THREE.BoxGeometry(7.6, 2.6, 5), metal);
-    usb.position.set(0, 22.1, 14.4); Q.add(usb);
+    usb.position.set(0, 25.1, 12.6); Q.add(usb);
     const boot = new THREE.Mesh(new THREE.BoxGeometry(3, 1.2, 2), capMat);
-    boot.position.set(12, 21.6, 12.4); Q.add(boot);
+    boot.position.set(10.5, 24.6, 10.5); Q.add(boot);
+
+    // receiver: Crossfire Nano, mounted behind the stack
+    const rxPcb = new THREE.Mesh(new THREE.BoxGeometry(21, 1.4, 16), pcb);
+    rxPcb.position.set(0, 12.5, 34);
+    Q.add(rxPcb);
+    const rxShield = new THREE.Mesh(new THREE.BoxGeometry(12, 2.6, 9), metal);
+    rxShield.position.set(0, 13.8, 34);
+    Q.add(rxShield);
 
     // motor wires: three per arm, running from the ESC out along the arm
     for (const [mx, mz] of MP) {
@@ -224,16 +239,29 @@ export function createQuad(renderer) {
     }
   }
 
-  /* --- battery on the deck, two straps --- */
+  /* --- battery on the deck: real GNB 1100 mAh 4S envelope --- */
   {
-    const pack = new THREE.Mesh(new THREE.BoxGeometry(36, 22, 70), plastic);
-    pack.position.set(0, 42, 4);
+    // measured 87.4 x 32.9 x 48.8 mm including the leads; the pack body is
+    // about 78 x 34 x 30, with the balance and XT60 leads at the front
+    const pack = new THREE.Mesh(new THREE.BoxGeometry(34, 30, 78), plastic);
+    pack.position.set(0, 46, 6);
     pack.castShadow = true;
     Q.add(pack);
-    for (const z of [-18, 22]) {
-      const strap = new THREE.Mesh(new THREE.BoxGeometry(40, 2.2, 9), rubber);
-      strap.position.set(0, 42, z);
+    // a printed shrink-wrap band, so it reads as a LiPo and not as a black brick
+    const band = new THREE.Mesh(new THREE.BoxGeometry(35, 12, 34), new THREE.MeshStandardMaterial({ color: 0x1f3a4a, roughness: 0.8 }));
+    band.position.set(0, 46, 6);
+    Q.add(band);
+    for (const z of [-16, 24]) {
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(38, 2.2, 9), rubber);
+      strap.position.set(0, 46, z);
       Q.add(strap);
+    }
+    for (let k = 0; k < 4; k++) {
+      const lead = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 14, 6),
+        new THREE.MeshStandardMaterial({ color: k % 2 ? 0x111111 : 0xaa2222, roughness: 0.8 }));
+      lead.position.set(-4 + k * 2.6, 50, 48);
+      lead.rotation.x = 1.1;
+      Q.add(lead);
     }
   }
 
@@ -255,21 +283,26 @@ export function createQuad(renderer) {
     }
   }
 
-  /* --- motors + props: the d.js construction --- */
+  /* --- motors + props: the d.js construction, with the real 2306 mesh swapped in
+   * once it has loaded --- */
   const motors = MP.map(([x, z], i) => {
     const grp = new THREE.Group();
     grp.position.set(x, 2.5, z);
     Q.add(grp);
 
+    // procedural stand-in, replaced by the real STL when it arrives
+    const proc = new THREE.Group();
+    grp.add(proc);
+
     const stator = new THREE.Mesh(new THREE.CylinderGeometry(13, 14, 8, 40), metal);
     stator.position.y = 4;
     stator.castShadow = true;
-    grp.add(stator);
+    proc.add(stator);
 
     const bell = new THREE.Mesh(new THREE.CylinderGeometry(13.5, 13.5, 12, 48), bellSteel);
     bell.position.y = 14;
     bell.castShadow = true;
-    grp.add(bell);
+    proc.add(bell);
 
     // the shiny ring is what makes the motor read as machined aluminium
     const ring = new THREE.Mesh(new THREE.TorusGeometry(13.6, 0.9, 12, 64), ringMat.clone());
@@ -299,7 +332,7 @@ export function createQuad(renderer) {
     glow.position.y = 24.5;
     grp.add(glow);
 
-    return { grp, prop, glow, bell, ring, dir: i === 0 || i === 3 ? 1 : -1 };
+    return { grp, proc, prop, glow, bell, ring, dir: i === 0 || i === 3 ? 1 : -1 };
   });
 
   /* --- light rig: the d.js setup, plus a floor that exists --- */
@@ -354,10 +387,55 @@ export function createQuad(renderer) {
 
   scene.fog = new THREE.Fog(0x0B0E12, 1400, 3200);
 
-  return {
+  /* --- swap in the real motor mesh when it has loaded --- */
+  const motorUrl = '/build/models/emax_rsii_2306.stl';
+  let realMotor = null;
+
+  const api = {
     scene, Q, motors,
     materials: { carbon, metal, bellSteel, heatMat, ringMat },
+    motorUrl,
+    applyRealMotor(geometry) {
+      if (realMotor) return;
+      geometry.computeVertexNormals();
+      geometry.computeBoundingBox();
+      const bb = geometry.boundingBox;
+      const size = new THREE.Vector3();
+      bb.getSize(size);
+      const centre = new THREE.Vector3();
+      bb.getCenter(centre);
+      // sit the motor on the arm: centre in X/Z, base at y = 0
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x9aa5b0, metalness: 0.95, roughness: 0.28,
+      });
+      realMotor = { geometry, mat, size, bb };
+      motors.forEach((m) => {
+        const mesh = new THREE.Mesh(geometry, mat);
+        mesh.position.set(-centre.x, -bb.min.y, -centre.z);
+        mesh.castShadow = true;
+        m.grp.add(mesh);
+        m.proc.visible = false;
+        m.realMesh = mesh;
+      });
+    },
+    get realMotorSize() { return realMotor ? realMotor.size : null; },
   };
+
+  return api;
+}
+
+/* Loads the real EMAX RSII 2306 mesh and swaps it into the motors. */
+export async function enrichQuad(api) {
+  if (!api.motorUrl) return false;
+  try {
+    const { STLLoader } = await import('/build/node_modules/three/examples/jsm/loaders/STLLoader.js');
+    const geo = await new STLLoader().loadAsync(api.motorUrl);
+    api.applyRealMotor(geo);
+    return true;
+  } catch (e) {
+    console.warn('real motor mesh unavailable, keeping procedural motor:', e.message);
+    return false;
+  }
 }
 
 /* A pine silhouette for the opening drop. */

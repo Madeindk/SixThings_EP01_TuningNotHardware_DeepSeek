@@ -47,4 +47,18 @@ New series "6 Things" (create a playlist when publishing; not created). Optional
 No research sources are listed in the description and none appear in the video. All sources live only in the internal fact ledger EP01/SOURCES_AND_FACT_QA.md. No source used requires attribution: they are research reading only, nothing is quoted on screen, and no third-party chart, image or footage is reproduced. If a licensed asset (e.g. CC BY) is ever added, its attribution goes in a single discreet credits line at the very end of the description, never on screen.
 
 ## Credits
-External footage/music: NONE. No CC BY assets are used in this episode, so no attribution line is needed. If any third-party asset is added in the edit, its attribution must be added here and kept. Narration and all graphics are produced locally for EasyQuadTune.
+
+External footage/music: NONE.
+
+3D model: the motor on the airframe is the **EMAX RSII 2306** by **CK90** (Thingiverse,
+thing:3041414), licensed **Creative Commons — Attribution**. If that mesh is used in the
+published render, this single line must go at the very end of the description, never on
+screen:
+
+> Motor 3D model: "EMAX RSII 2306" by CK90 (Thingiverse, CC BY).
+
+Battery, ESC, AIO flight controller and receiver were supplied as STEP files. Only their
+external dimensions were measured; the geometry on screen is modelled, not copied. No CC BY
+asset other than the motor is used, so no further attribution line is needed. If any
+third-party asset is added in the edit, its attribution must be added here and kept.
+Narration and all graphics are produced locally for EasyQuadTune.

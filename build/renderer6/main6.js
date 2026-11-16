@@ -16,7 +16,7 @@ import {
   loadFonts, beginFrame, endFrame, text, display, rrect,
   hudPanel, legend, axis, series, markerLine, panelGradient, brackets, vignette, rng,
 } from './lib6.js';
-import { createQuad, createTree } from './quad6.js';
+import { createQuad, createTree, enrichQuad } from './quad6.js';
 import { flightState } from './flight6.js';
 
 /* ------------------------------------------------------------------ */
@@ -34,7 +34,8 @@ renderer.toneMappingExposure = 1.12;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-const { scene, Q, motors, materials } = createQuad(renderer);
+const quad = createQuad(renderer);
+const { scene, Q, motors, materials } = quad;
 const tree = createTree();
 tree.position.set(-520, -70, -430);
 scene.add(tree);
@@ -56,9 +57,19 @@ function setCamera(preset, t, u, fs) {
   const drift = ease.sine((Math.sin(t * 0.22) + 1) / 2);
 
   if (preset === "macro") {
-    // close on a bell: low, tight, drifting
-    camera.position.set(96 - u * 16, 46 - u * 5, 152 - u * 14);
-    camera.lookAt(78, 24, 30);
+    // The front-left motor sits at (+79.2, +79.2) because ARM/√2 = 79.2, so the
+    // camera looks AT that motor rather than at the frame centre. The aim point is
+    // then nudged along the camera's right axis to place the subject in the left
+    // half of the frame: aiming right of the subject moves the subject left.
+    const mx = 79.2, mz = 79.2;
+    const camPos = new THREE.Vector3(mx + 40 - u * 6, 30 - u * 4, mz + 42 - u * 5);
+    const target = new THREE.Vector3(mx, 20, mz);
+    const fwd = target.clone().sub(camPos).normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+    const dist = camPos.distanceTo(target);
+    const aim = target.clone().addScaledVector(right, dist * 0.16);
+    camera.position.copy(camPos);
+    camera.lookAt(aim);
     return;
   }
 
@@ -667,7 +678,7 @@ function threeMini(box, progress) {
 const BEATS = {
   'P1-S01': [
     { m: 'F', cam: 'drop', k: 'plain', cap: ['01', 'It wobbles, then it settles'] },
-    { m: 'F', cam: 'macro', k: 'macro', cap: ['02', 'The bell comes down warm'] },
+    { m: 'F', cam: 'macro', k: 'macro', noProp: true, cap: ['02', 'The bell comes down warm'] },
     { m: 'E', k: 'broken' },
     { m: 'E', k: 'split' },
     { m: 'F', cam: 'wide', k: 'chart', cap: ['05', 'Two lines and what the motors did'] },
@@ -765,6 +776,8 @@ export async function renderFrame(spec) {
 
   if (!ready) {
     await loadFonts('/SixThings_EP01/style/fonts');
+    // the real EMAX 2306 mesh replaces the procedural motor before the first frame
+    await enrichQuad(quad);
     makeCutout();
     ready = true;
   }
@@ -815,6 +828,8 @@ export async function renderFrame(spec) {
   const rpm = clamp(fs.throttle * 1.4, 0, 1);
   motors.forEach((m, i) => {
     const local = clamp(rpm * (1 + 0.04 * Math.sin(i * 2.1)), 0, 1);
+    m.prop.visible = !b.noProp;
+    m.glow.visible = !b.noProp;
     m.prop.rotation.z = m.dir * tLocal * (22 + 70 * local);
     m.prop.material.opacity = 0.55 + 0.45 * local;
     m.glow.material.opacity = 0.06 + 0.20 * local;
@@ -895,6 +910,7 @@ export async function renderFrame(spec) {
 window.renderFrame = renderFrame;
 window.__scene = scene;
 window.__quad = Q;
+window.__quadApi = quad;
 /* Tuning hooks: exposure and a light multiplier, so brightness can be measured
  * instead of judged by eye. */
 window.__setExposure = (e) => { renderer.toneMappingExposure = e; };
