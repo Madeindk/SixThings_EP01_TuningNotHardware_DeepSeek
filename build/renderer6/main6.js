@@ -779,8 +779,278 @@ const BEATS = {
 };
 
 /* ------------------------------------------------------------------ */
-/* frame                                                              */
+/* plates: the airframe that is already rendered                      */
 /* ------------------------------------------------------------------ */
+/* The quad in this episode is the one modelled and rendered for Six Things
+ * already, not a new model. build/ingest_plates.js turns those finished frames
+ * into the nine clips in build/plates, and this layer cuts between them.
+ *
+ * The renders are beauty passes: the airframe sits in the studio and turns
+ * slowly. They carry almost no motion of their own, so the movement the edit
+ * needs is added here — every beat gets its own camera move (push, pull, drift)
+ * and its own in-point, so no two beats cut to the same image twice and the
+ * frame is never dead while the narration carries a fourteen-second beat.
+ *
+ * The source is 1080p and stays 1080p: no upscale, only a slow transform.
+ */
+const PLATE_FPS = 30;
+
+const PANEL_KINDS = new Set(['chart', 'step', 'spectrum', 'bars', 'loop', 'chain', 'mini3', 'macro']);
+
+/* Every source plate, with where the airframe actually sits in it.
+ *
+ * cx/cy are the median centroid of the subject measured over sampled frames of
+ * each source, as fractions of the frame. They differ per pass — SH02 sits right
+ * of centre, SH08 sits high and left, the stills are already composed for a
+ * right-hand panel — so the compositor reframes each one individually instead of
+ * assuming the subject is centred.
+ *
+ *   kind  video for the animated passes, still for the four hero frames
+ *   zoom  how far this source can be pushed before it turns to mush; the
+ *         sources are all 1920x1080, so 1.45 is the ceiling
+ */
+const PLATES = {
+  hero_a:   { kind: 'still', src: 'img/hero_a.png',   cx: 0.34, cy: 0.39, zoom: 1.12 },
+  hero_b:   { kind: 'still', src: 'img/hero_b.png',   cx: 0.56, cy: 0.54, zoom: 1.10 },
+  propwash: { kind: 'still', src: 'img/propwash.png', cx: 0.38, cy: 0.43, zoom: 1.10 },
+  bearings: { kind: 'still', src: 'img/bearings.png', cx: 0.47, cy: 0.55, zoom: 1.18 },
+  drop:     { kind: 'video', src: 'drop.mp4',         cx: 0.59, cy: 0.42, zoom: 1.25 },
+  motorcu:  { kind: 'video', src: 'motorcu.mp4',      cx: 0.52, cy: 0.44, zoom: 1.30 },
+  SH02:     { kind: 'video', src: 'SH02.mp4',         cx: 0.60, cy: 0.48, zoom: 1.40 },
+  SH03:     { kind: 'video', src: 'SH03.mp4',         cx: 0.49, cy: 0.53, zoom: 1.45 },
+  SH04:     { kind: 'video', src: 'SH04.mp4',         cx: 0.51, cy: 0.48, zoom: 1.45 },
+  SH08:     { kind: 'video', src: 'SH08.mp4',         cx: 0.47, cy: 0.35, zoom: 1.45 },
+};
+
+/* Which plate answers each beat, and how it is cut.
+ *
+ *   clip   key in PLATES
+ *   at     seconds into the clip where the beat starts (video only)
+ *   speed  playback rate, so a fourteen-second beat can sit without racing
+ *   move   camera move applied across the beat
+ *
+ * The hero stills and the two motion passes carry the beats the narration is
+ * actually showing something on; the wide passes carry the chart and log beats,
+ * where the panel is the subject and the airframe is context.
+ */
+const PLATE_CUTS = {
+  'P1-S01:0': { clip: 'drop', at: 0.0, speed: 1.0, move: 'push' },
+  'P1-S01:1': { clip: 'motorcu', at: 0.6, speed: 0.85, move: 'push' },
+  'P1-S01:4': { clip: 'hero_a', move: 'driftL' },
+
+  'P1-S02:0': { clip: 'hero_a', move: 'push' },
+  'P1-S02:1': { clip: 'SH03', at: 0.6, speed: 0.85, move: 'driftR' },
+  'P1-S02:2': { clip: 'hero_b', move: 'pull' },
+  'P1-S02:3': { clip: 'SH04', at: 1.2, speed: 0.85, move: 'push' },
+
+  'P1-S03:1': { clip: 'SH08', at: 0.4, speed: 0.9, move: 'rise' },
+  'P1-S03:2': { clip: 'propwash', move: 'push' },
+  'P1-S03:3': { clip: 'SH02', at: 4.5, speed: 0.8, move: 'pull' },
+  'P1-S03:4': { clip: 'propwash', move: 'driftR' },
+
+  'P1-S04:1': { clip: 'SH04', at: 0.5, speed: 0.9, move: 'push' },
+  'P1-S04:2': { clip: 'motorcu', at: 2.4, speed: 0.85, move: 'driftR' },
+  'P1-S04:3': { clip: 'hero_a', move: 'pull' },
+  'P1-S04:4': { clip: 'SH03', at: 2.2, speed: 0.85, move: 'push' },
+  'P1-S04:5': { clip: 'hero_b', move: 'driftL' },
+
+  'P1-S05:1': { clip: 'hero_a', move: 'push' },
+  'P1-S05:2': { clip: 'hero_b', move: 'pull' },
+  'P1-S05:3': { clip: 'SH03', at: 1.0, speed: 0.85, move: 'driftR' },
+  'P1-S05:4': { clip: 'hero_a', move: 'driftL' },
+  'P1-S05:5': { clip: 'SH02', at: 2.4, speed: 0.85, move: 'rise' },
+
+  'P1-S06:1': { clip: 'hero_b', move: 'push' },
+  'P1-S06:2': { clip: 'SH02', at: 7.0, speed: 0.8, move: 'driftL' },
+  'P1-S06:3': { clip: 'hero_a', move: 'pull' },
+  'P1-S06:4': { clip: 'SH04', at: 2.8, speed: 0.85, move: 'push' },
+  'P1-S06:5': { clip: 'SH08', at: 1.5, speed: 0.9, move: 'driftR' },
+
+  'P1-S07:1': { clip: 'hero_a', move: 'push' },
+  'P1-S07:2': { clip: 'SH02', at: 5.6, speed: 0.85, move: 'driftL' },
+  'P1-S07:3': { clip: 'SH03', at: 3.4, speed: 0.85, move: 'pull' },
+  'P1-S07:5': { clip: 'bearings', move: 'push' },
+
+  'P1-S08:1': { clip: 'SH08', at: 0.8, speed: 0.9, move: 'rise' },
+  'P1-S08:2': { clip: 'hero_a', move: 'driftR' },
+  'P1-S08:3': { clip: 'SH04', at: 4.0, speed: 0.85, move: 'push' },
+  'P1-S08:4': { clip: 'hero_b', move: 'pull' },
+  'P1-S08:5': { clip: 'SH02', at: 9.2, speed: 0.8, move: 'driftL' },
+
+  'P1-S09:1': { clip: 'hero_a', move: 'push' },
+  'P1-S09:2': { clip: 'SH03', at: 4.4, speed: 0.85, move: 'driftR' },
+  'P1-S09:3': { clip: 'bearings', move: 'push' },
+  'P1-S09:4': { clip: 'SH02', at: 1.6, speed: 0.85, move: 'pull' },
+  'P1-S09:5': { clip: 'motorcu', at: 1.4, speed: 0.9, move: 'driftL' },
+
+  'P1-S10:1': { clip: 'hero_a', move: 'push' },
+  'P1-S10:2': { clip: 'SH04', at: 3.6, speed: 0.85, move: 'driftR' },
+  'P1-S10:3': { clip: 'SH03', at: 5.2, speed: 0.85, move: 'pull' },
+  'P1-S10:4': { clip: 'hero_b', move: 'push' },
+};
+
+const plateMedia = new Map();
+const plateLoads = new Map();
+
+function plateMediaFor(id) {
+  const have = plateMedia.get(id);
+  if (have) return have;
+
+  const spec = PLATES[id];
+  let el;
+  if (spec.kind === 'still') {
+    el = new Image();
+    el.src = `/build/plates/${spec.src}`;
+  } else {
+    el = document.createElement('video');
+    el.src = `/build/plates/${spec.src}`;
+    el.muted = true;
+    el.playsInline = true;
+    el.preload = 'auto';
+    el.style.cssText = 'position:fixed;left:-9999px;top:0;width:4px;height:4px;opacity:0;';
+    document.body.appendChild(el);
+    el.load();
+  }
+
+  plateMedia.set(id, el);
+  plateLoads.set(id, new Promise((resolve) => {
+    let settled = false;
+    const done = (ok) => {
+      if (settled) return;
+      settled = true;
+      resolve(ok);
+    };
+    if (spec.kind === 'still') {
+      if (el.complete && el.naturalWidth) done(true);
+      else {
+        el.addEventListener('load', () => done(true));
+        el.addEventListener('error', () => done(false));
+      }
+    } else {
+      el.addEventListener('loadeddata', () => done(true));
+      el.addEventListener('error', () => done(false));
+    }
+    setTimeout(() => done(false), 10000);
+  }));
+
+  return el;
+}
+
+function cutFor(sceneId, beatIndex) {
+  return PLATE_CUTS[`${sceneId}:${beatIndex}`] || PLATE_CUTS['P1-S02:0'];
+}
+
+/* Ease the camera move. Linear transforms read as a slide; a smoothstep holds
+ * for a beat at each end, which is what makes a push-in feel deliberate. */
+function smooth(u) {
+  const x = u < 0 ? 0 : u > 1 ? 1 : u;
+  return x * x * (3 - 2 * x);
+}
+
+async function seekPlate(v, t) {
+  const d = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 1e9;
+  const target = Math.max(0, Math.min(t % d, d - 0.05));
+  if (Math.abs(v.currentTime - target) < 0.008) return;
+  await new Promise((resolve) => {
+    let settled = false;
+    const fin = () => {
+      if (settled) return;
+      settled = true;
+      v.removeEventListener('seeked', fin);
+      resolve();
+    };
+    v.addEventListener('seeked', fin);
+    setTimeout(fin, 500);
+    try { v.currentTime = target; } catch (e) { fin(); }
+  });
+}
+
+async function loadPlate(id, t) {
+  const el = plateMediaFor(id);
+  const ok = await plateLoads.get(id);
+  if (!ok) return null;
+  if (PLATES[id].kind === 'video') {
+    if (el.readyState < 2) return null;
+    await seekPlate(el, t);
+  }
+  return el;
+}
+
+/* Draw the plate for this beat.
+ *
+ * The source is reframed so the airframe lands where the composition wants it —
+ * clear of the HUD panel on panel beats, centred when the panel is full-screen
+ * — and only then does the beat's camera move run on top. Because the subject is
+ * not centred in every source, the zoom required to move it also depends on how
+ * far it has to travel: an offset image at scale 1 leaves a bare strip, so the
+ * scale is raised until the frame is covered, capped at the source's zoom limit.
+ * When the cap is hit the target is pulled back instead, which keeps the
+ * airframe whole rather than pushing it off the edge. */
+function drawPlate(ctx, media, cut, u, hasPanel, full) {
+  const spec = PLATES[cut.clip];
+  const isStill = spec.kind === 'still';
+  const e = smooth(u);
+
+  let scale = 1.0;
+  let moveX = 0;
+  let moveY = 0;
+  let rot = 0;
+
+  switch (cut.move) {
+    case 'push': scale = 1.03 + 0.085 * e; break;
+    case 'pull': scale = 1.115 - 0.085 * e; break;
+    case 'driftL': scale = 1.07; moveX = 0.022 - 0.055 * e; break;
+    case 'driftR': scale = 1.07; moveX = -0.022 + 0.055 * e; break;
+    case 'rise': scale = 1.07; moveY = 0.020 - 0.045 * e; break;
+    default: scale = 1.04;
+  }
+
+  /* A still has no internal motion, and a slow push on its own reads as a
+   * frozen frame drifting closer. Half a degree of rotation across the beat
+   * turns the same push into a turntable, which is how the airframe is lit. */
+  if (isStill) rot = (-0.30 + 0.60 * e) * Math.PI / 180;
+
+  // where the subject should land on screen
+  let tx = full ? 0.50 : (hasPanel ? 0.36 : 0.50);
+  let ty = 0.50;
+
+  tx += moveX;
+  ty += moveY;
+
+  // full coverage: scale s can place the subject anywhere in this band
+  const fitX = (s) => [1 - (1 - spec.cx) * s, spec.cx * s];
+  const fitY = (s) => [1 - (1 - spec.cy) * s, spec.cy * s];
+
+  // rotation swings the corners, so it needs a little more scale
+  const rotPad = Math.abs(rot) * 2;
+
+  const lo = Math.max(scale + rotPad, 1.0);
+  const coverX = Math.max(tx / spec.cx, (1 - tx) / (1 - spec.cx));
+  const coverY = Math.max(ty / spec.cy, (1 - ty) / (1 - spec.cy));
+  let s = Math.max(lo, coverX, coverY);
+
+  if (s > spec.zoom) {
+    s = spec.zoom;
+    const [x0, x1] = fitX(s);
+    const [y0, y1] = fitY(s);
+    tx = Math.min(Math.max(tx, x0), x1);
+    ty = Math.min(Math.max(ty, y0), y1);
+  }
+
+  const w = W * s;
+  const h = H * s;
+
+  if (rot) {
+    ctx.save();
+    ctx.translate(tx * W, ty * H);
+    ctx.rotate(rot);
+    ctx.drawImage(media, -spec.cx * w, -spec.cy * h, w, h);
+    ctx.restore();
+  } else {
+    ctx.drawImage(media, tx * W - spec.cx * w, ty * H - spec.cy * h, w, h);
+  }
+}
+
 let ready = false;
 
 export async function renderFrame(spec) {
@@ -826,8 +1096,11 @@ export async function renderFrame(spec) {
     return true;
   }
 
-  /* F mode: 3D first, then the 2D layer on top. The quad plays the manoeuvre
-   * this beat is about, so the motion and the narration say the same thing. */
+  /* F mode: the rendered plate first, then the 2D layer on top. */
+  const cut = cutFor(sceneId, beatIndex);
+  const plate = await loadPlate(cut.clip, cut.at + tLocal * cut.speed);
+  const hasPanel = PANEL_KINDS.has(b.k);
+
   const fs = flightState(sceneId, beatIndex, u);
   setCamera(b.cam, tLocal, u, fs);
 
@@ -861,9 +1134,19 @@ export async function renderFrame(spec) {
   materials.bellSteel.emissive.setHex(0x5a2a10);
   materials.bellSteel.emissiveIntensity = fs.heat * 0.30;
 
-  renderer.render(scene, camera);
+  if (!plate) renderer.render(scene, camera);
 
   g.clearRect(0, 0, W, H);
+
+  /* the plate carries the studio; the HUD only grades on top */
+  if (plate) {
+    drawPlate(g, plate, cut, u, hasPanel, !!b.full);
+    if (b.full) {
+      g.fillStyle = 'rgba(6,9,13,0.55)';
+      g.fillRect(0, 0, W, H);
+    }
+  }
+
   // studio falloff and framing
   vignette(g);
   brackets(g, 0.35);

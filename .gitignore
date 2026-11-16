@@ -57,3 +57,12 @@ build/frames6/
 
 # XL7 CAD-reference (Fusion 360-filer, kan ikke bruges direkte af rendereren).
 build/ref/
+
+# Plate-biblioteket (build/plates) COMMITTES med vilje: det er de faerdige
+# renders af den quad der allerede er lavet til serien, ca. 39 MB, og uden dem
+# kan episoden ikke genskabes. Kilden ligger i G:\YT-arbejde; genskab med
+#   node build/ingest_plates.js
+# Render-log og midlertidige kontrolscripts er arbejdsfiler.
+build/render_full.log
+build/*.log
+build/check_out/

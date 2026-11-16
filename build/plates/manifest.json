@@ -1,0 +1,74 @@
+{
+  "fps": 30,
+  "generatedAt": "2026-11-16T13:15:05.637Z",
+  "clips": {
+    "SH02": {
+      "width": 1920,
+      "height": 1080,
+      "frames": 330,
+      "duration": 11,
+      "source": "SixThings_EP01_F1\\SH02",
+      "kind": "sequence"
+    },
+    "SH03": {
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "duration": 6,
+      "source": "SixThings_EP01_F1\\SH03",
+      "kind": "sequence"
+    },
+    "SH04": {
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "duration": 6,
+      "source": "SixThings_EP01_F1\\SH04",
+      "kind": "sequence"
+    },
+    "SH08": {
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "duration": 6,
+      "source": "SixThings_EP01_F1\\SH08",
+      "kind": "sequence"
+    },
+    "drop": {
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "duration": 6,
+      "source": "v2_bibliotek\\3D_SH02_cold_open_drop_v2.mp4",
+      "kind": "video"
+    },
+    "motorcu": {
+      "width": 1920,
+      "height": 1080,
+      "frames": 240,
+      "duration": 8,
+      "source": "v2_bibliotek\\3D_SH03_motor_cu_v2.mp4",
+      "kind": "video"
+    },
+    "hero_a": {
+      "kind": "still",
+      "source": "v2\\final\\v2_hero_a.png",
+      "file": "img/hero_a.png"
+    },
+    "hero_b": {
+      "kind": "still",
+      "source": "v2\\final\\v2_hero_b.png",
+      "file": "img/hero_b.png"
+    },
+    "propwash": {
+      "kind": "still",
+      "source": "v2\\final\\v2_propwash.png",
+      "file": "img/propwash.png"
+    },
+    "bearings": {
+      "kind": "still",
+      "source": "v2\\final\\v2_bearings.png",
+      "file": "img/bearings.png"
+    }
+  }
+}
